@@ -22,8 +22,7 @@ const publicHTMLPath = process.env.NODE_STATIC_HTML || './public';
 app.use(express.static(publicHTMLPath));
 
 let numUsers = 0;
-// let numCards = Math.round(52/numPlayers);
-let numCards = 3;
+let numCards = Math.round(52/numPlayers);
 
 io.on('connection', (socket) => {
   consoleInfo('a user connected');
@@ -82,7 +81,7 @@ io.on('connection', (socket) => {
     			}
     		}
     		if (currGame.round.cards.length === 4) { // Round is over
-    			io.emit('play card', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
+    			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
     			currGame.players[currGame.round.winningPlayer].tricks++;
     			if (currGame.players[0].cards.length === 0) { // Check for end of round
     				for (let i=0; i<numPlayers; i++) { // No more cards in this round
@@ -154,6 +153,11 @@ io.on('connection', (socket) => {
   		for (let j=0; j<numPlayers; j++) {
   			if (socket.id === currGame.players[j].id) {
   				currGame.players[j].bid = bid;
+          let msg = {
+            "player": currGame.players[j].name,
+            "bid": bid
+          };
+          io.emit('bid', msg);
   			}
   		}
   		playerBoard(currGame, i);
@@ -251,7 +255,7 @@ function playGame(board) {
 		playerBoard(board, i);
   }
   let msg = {
-  	"msg": 'Your turn',
+  	"msg": 'Your bid',
   	"canType": true
   }
   io.to(board.players[board.round.starter].id).emit('status', msg);

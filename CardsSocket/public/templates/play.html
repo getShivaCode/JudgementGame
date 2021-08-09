@@ -1,0 +1,21 @@
+Play:
+<div class="cards-table">
+	<div class="cards-suit {{spadesTrump}}">
+		♠️ <div ng-repeat="card in cards.spades" ng-click="playCard(card, 0)">{{card}}</div>
+	</div>
+	<div class="cards-suit cards-red {{heartsTrump}}">
+		♥️ <div ng-repeat="card in cards.hearts" ng-click="playCard(card, 1)">{{card}}</div>
+	</div>
+	<div class="cards-suit {{clubsTrump}}">
+		♣️ <div ng-repeat="card in cards.clubs" ng-click="playCard(card, 2)">{{card}}</div>
+	</div>
+	<div class="cards-suit cards-red {{diamondsTrump}}">
+		♦️ <div ng-repeat="card in cards.diamonds" ng-click="playCard(card, 3)">{{card}}</div>
+	</div>
+</div>
+<div ng-repeat="player in players" class="cards-player">
+	{{player.name}}:
+	<div>Bid: {{player.bid}}</div>
+	<div>Tricks: {{player.tricks}}</div>
+	<div>Score: {{player.score}}</div>
+</div>
