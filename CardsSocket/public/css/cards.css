@@ -67,6 +67,12 @@
   grid-template-columns: 1fr 1fr 1fr 1fr;
 }
 
+.cards-table-2 {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
 .cards-suit {
   border: 1px;
   border-color: #637fab;
@@ -74,10 +80,6 @@
 
 .cards-red {
   color: #e83731;
-}
-
-.cards-trump {
-  background-color: #ada7ff;
 }
 
 .cards-button:active {
@@ -104,10 +106,13 @@
 }
 
 .cards-player {
-  text-align: left;
   margin: 10px;
   padding: 10px;
   background-color: #a9afbe;
+}
+
+.cards-trump {
+  background-color: #ada7ff;
 }
 
 #messages { list-style-type: none; margin: 0; padding: 0; }

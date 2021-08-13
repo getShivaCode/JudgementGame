@@ -38,6 +38,7 @@
 		"winningPlayer": 0,
 		"winningCard": 0,
 		"trump": 0,
-		"starter": 0
+		"starter": 0,
+		"handWinner": 0
 	}
 }

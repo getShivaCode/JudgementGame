@@ -83,6 +83,7 @@ io.on('connection', (socket) => {
     		if (currGame.round.cards.length === 4) { // Round is over
     			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
     			currGame.players[currGame.round.winningPlayer].tricks++;
+          currGame.round.handWinner = currGame.round.winningPlayer;
     			if (currGame.players[0].cards.length === 0) { // Check for end of round
     				for (let i=0; i<numPlayers; i++) { // No more cards in this round
     					console.log(`for player ${i} bid is ${currGame.players[i].bid} and tricks are ${currGame.players[i].tricks}`);
@@ -98,6 +99,7 @@ io.on('connection', (socket) => {
     				} else {
     					currGame.round.winningPlayer = 0;
 	   					currGame.round.winningCard = 0;
+              currGame.round.handWinner = 0;
   	 					currGame.round.cards = [];
     					io.emit('status', 'new round');
     					currGame.round.starter = (currGame.round.starter+1)%numPlayers;

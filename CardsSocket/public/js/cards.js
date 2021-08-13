@@ -63,30 +63,60 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
   $scope.bids = 13;
 
-  $scope.bid = 0;
+  $scope.selected = "";
+
+  let cardPlayed = 0;
 
   $scope.makeBid = function(bid) {
+    if (!bid) {
+      console.log("bid is 0 now");
+      bid = 0;
+    }
     console.log(bid);
     socket.emit('bid', bid);
     nextState = 'play';
     myTurn = false;
   };
 
-  $scope.playCard = function(card, suit) {
+  $scope.select = function(card, suit) {
     if (myTurn) {
       if (card === 'J') {
-        card = 9;
+        cardPlayed = 9;
       } else if (card === 'Q') {
-        card = 10;
+        cardPlayed = 10;
       } else if (card === 'K') {
-        card = 11;
+        cardPlayed = 11;
       } else if (card === 'A') {
-        card = 12;
+        cardPlayed = 12;
       } else {
-        card = parseInt(card)-2;
+        cardPlayed = parseInt(card)-2;
       }
-      card = card+13*(suit);
-      socket.emit('play card', card);
+      cardPlayed = cardPlayed+13*(suit);
+
+      if (suit === 0) {
+        card += "♠️";
+      } else if (suit === 1) {
+        card += "♥️";
+      } else if (suit === 2) {
+        card += "♣️";
+      } else {
+        card += "♦️";
+      }
+      $scope.selected = card;
+
+      $state.go(`base.play${stateNum}`);
+      if (stateNum === 1) {
+        stateNum = 2;
+      } else {
+        stateNum = 1;
+      }
+    }
+  }
+
+  $scope.playCard = function() {
+    if (myTurn) {
+      socket.emit('play card', cardPlayed);
+      $scope.selected = "";
       nextState = 'play';
       myTurn = false;
     }
@@ -112,6 +142,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     };
 
     $scope.players = [];
+    for (let i=0; i<board.players.length; i++) {
+      $scope.players.push({});
+    }
 
     for (let i=0; i<board.players.length; i++) {
       delete board.players[i].id;
@@ -136,14 +169,36 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         delete board.players[i].cards;
       }
 
-      if (board.players[i].bid > -1) {
+      let j=(i+board.round.handWinner)%board.players.length;
+
+      if (board.players[j].bid > -1) {
+        let card = board.round.cards[i];
         let player = {
-          "name": board.players[i].name,
-          "bid": board.players[i].bid,
-          "tricks": board.players[i].tricks,
-          "score": board.players[i].score
+          "name": board.players[j].name,
+          "bid": board.players[j].bid,
+          "tricks": board.players[j].tricks,
+          "score": board.players[j].score,
         };
-        $scope.players.push(player);
+        if (card && (board.round.cards.length != board.players.length)) {
+          let suit = Math.floor(card/13);
+          card = prettyCard(card);
+          if (suit === 0) {
+            card += "♠️";
+          } else if (suit === 1) {
+            card += "♥️";
+          } else if (suit === 2) {
+            card += "♣️";
+          } else {
+            card += "♦️";
+          }
+          player.card = card;
+        }
+        if (board.round.winningPlayer === j) {
+          player.winning = "cards-trump";
+        } else {
+          player.winning = "";
+        }
+        $scope.players[j] = player;
       }
     }
 

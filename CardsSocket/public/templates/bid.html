@@ -12,13 +12,13 @@
 		♦️ <div ng-repeat="card in cards.diamonds">{{card}}</div>
 	</div>
 </div>
-<div ng-repeat="player in players" class="cards-player">
+<form>
+	Bid: 0<input type="range" min="0" max="{{bids}}" class="cards-input" ng-model="bid">{{bids}}
+</form>
+<div class="cards-button" ng-click="makeBid(bid)">Bid {{bid}}</div>
+<div ng-show="player.name" ng-repeat="player in players" class="cards-player">
 	{{player.name}}:
 	<div>Bid: {{player.bid}}</div>
 	<div>Tricks: {{player.tricks}}</div>
 	<div>Score: {{player.score}}</div>
 </div>
-<form>
-	Bid: 0<input type="range" min="0" max="{{bids}}" class="cards-input" ng-model="bid">{{bids}}
-</form>
-<div class="cards-button" ng-click="makeBid(bid)">Bid {{bid}}</div>
