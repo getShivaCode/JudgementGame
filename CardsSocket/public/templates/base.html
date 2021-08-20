@@ -1,5 +1,136 @@
-<div class="cards-header">Cards</div>
+<div class="cards-header">Sachin's Pandemic Card Game</div>
+<div class="cards-main playingCards" ng-show="players">
+	<!-- Change Biden and delete comment when done -->
+	<div class="table-style">Your Cards (Biden: <span>{{}}</span>)</div>
+	<div class="cards-deck">
+		<div class="cards-suit {{spadesTrump}}">
+			<div ng-repeat="card in cards.spades" ng-click="select(card, 0)" class="card rank-{{card | lowercase}} spades">
+				<span class="rank">{{card}}</span>
+				<span class="suit">♠️</span>
+			</div>
+		</div>
+		<div class="cards-suit cards-red {{heartsTrump}}">
+			<div ng-repeat="card in cards.hearts" ng-click="select(card, 1)" class="card rank-{{card | lowercase}} hearts">
+				<span class="rank">{{card}}</span>
+				<span class="suit">♥️</span>
+			</div>
+		</div>
+		<div class="cards-suit {{clubsTrump}}">
+			<div ng-repeat="card in cards.clubs" ng-click="select(card, 2)" class="card rank-{{card | lowercase}} clubs">
+				<span class="rank">{{card}}</span>
+				<span class="suit">♣️</span>
+			</div>
+		</div>
+		<div class="cards-suit cards-red {{diamondsTrump}}">
+			<div ng-repeat="card in cards.diamonds" ng-click="select(card, 3)" class="card rank-{{card | lowercase}} diams">
+				<span class="rank">{{card}}</span>
+				<span class="suit">♦️</span>
+			</div>
+		</div>
+	</div>
+	<div class="cards-table">
+		<div class="table-player">
+			<div class="player player-top {{players[(me+2)%4].winning}}">
+				<div class="player-info">
+					<div class="player-name">{{players[(me+2)%4].name}}</div>
+					<div class="player-info-row">
+						<div class="attr">Tricks</div>
+						<div class="value">{{players[(me+2)%4].tricks}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Bid</div>
+						<div class="value">{{players[(me+2)%4].bid}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Score</div>
+						<div class="value">{{players[(me+2)%4].score}}</div>
+					</div>
+				</div>
+				<div ng-show="players[(me+2)%4].card.rank" class="player-card">
+					<div class="card rank-{{players[(me+2)%4].card.rank | lowercase}} {{players[(me+2)%4].card.suit}}">
+						<span class="rank">{{players[(me+2)%4].card.rank}}</span>
+						<span class="suit">{{players[(me+2)%4].card.suitEmoji}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="table-player player-middle">
+			<div class="player player-left {{players[(me+1)%4].winning}}">
+				<div class="player-info">
+					<div class="player-name">{{players[(me+1)%4].name}}</div>
+					<div class="player-info-row">
+						<div class="attr">Tricks</div>
+						<div class="value">{{players[(me+1)%4].tricks}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Bid</div>
+						<div class="value">{{players[(me+1)%4].bid}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Score</div>
+						<div class="value">{{players[(me+1)%4].score}}</div>
+					</div>
+				</div>
+				<div ng-show="players[(me+1)%4].card.rank" class="player-card">
+					<div class="card rank-{{players[(me+1)%4].card.rank | lowercase}} {{players[(me+1)%4].card.suit}}">
+						<span class="rank">{{players[(me+1)%4].card.rank}}</span>
+						<span class="suit">{{players[(me+1)%4].card.suitEmoji}}</span>
+					</div>
+				</div>
+			</div>
+			<div class="player player-right {{players[(me+3)%4].winning}}">
+				<div class="player-info">
+					<div class="player-name">{{players[(me+3)%4].name}}</div>
+					<div class="player-info-row">
+						<div class="attr">Tricks</div>
+						<div class="value">{{players[(me+3)%4].tricks}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Bid</div>
+						<div class="value">{{players[(me+3)%4].bid}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Score</div>
+						<div class="value">{{players[(me+3)%4].score}}</div>
+					</div>
+				</div>
+				<div ng-show="players[(me+3)%4].card.rank" class="player-card">
+					<div class="card rank-{{players[(me+3)%4].card.rank | lowercase}} {{players[(me+3)%4].card.suit}}">
+						<span class="rank">{{players[(me+3)%4].card.rank}}</span>
+						<span class="suit">{{players[(me+3)%4].card.suitEmoji}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="table-player">
+			<div class="player player-bottom {{players[me].winning}}">
+				<div class="player-info">
+					<div class="player-name">{{players[me].name}}</div>
+					<div class="player-info-row">
+						<div class="attr">Tricks</div>
+						<div class="value">{{players[me].tricks}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Bid</div>
+						<div class="value">{{players[me].bid}}</div>
+					</div>
+					<div class="player-info-row">
+						<div class="attr">Score</div>
+						<div class="value">{{players[me].score}}</div>
+					</div>
+				</div>
+				<div ng-show="players[me].card.rank" class="player-card">
+					<div class="card rank-{{players[me].card.rank | lowercase}} {{players[me].card.suit}}">
+						<span class="rank">{{players[me].card.rank}}</span>
+						<span class="suit">{{players[me].card.suitEmoji}}</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
 <div class="cards-inner-body">
-	<div ui-view></div>
+	<div ui-view class="cards-ui-view"></div>
 </div>
 <div class="cards-status" ng-show="status.length">{{status}}</div>

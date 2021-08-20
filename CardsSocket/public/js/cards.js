@@ -51,6 +51,8 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
   let socket = io();
 
+  $scope.me = 0; // hard coded compute later
+
   $scope.status = "";
 
   let nextState = 'bid';
@@ -67,19 +69,44 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
   let cardPlayed = 0;
 
-  $scope.makeBid = function(bid) {
-    if (!bid) {
-      console.log("bid is 0 now");
-      bid = 0;
-    }
-    console.log(bid);
-    socket.emit('bid', bid);
+  $scope.confirm = false;
+
+  $scope.makeBid = function() {
+    socket.emit('bid', $scope.bid);
     nextState = 'play';
     myTurn = false;
   };
 
-  $scope.select = function(card, suit) {
+  $scope.selectBid = function(bid) {
+    if (myTurn && bid) {
+      $scope.confirm = true;
+
+      $scope.bid = bid;
+
+      $state.go(`base.bid${stateNum}`);
+      if (stateNum === 1) {
+        stateNum = 2;
+      } else {
+        stateNum = 1;
+      }
+    }
+  }
+
+  $scope.cancel = function() {
     if (myTurn) {
+      $scope.confirm = false;
+
+      $state.go(`base.bid${stateNum}`);
+      if (stateNum === 1) {
+        stateNum = 2;
+      } else {
+        stateNum = 1;
+      }
+    }
+  }
+
+  $scope.select = function(card, suit) {
+    if (myTurn && ($scope.bid > -1)) {
       if (card === 'J') {
         cardPlayed = 9;
       } else if (card === 'Q') {
@@ -94,15 +121,23 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
       cardPlayed = cardPlayed+13*(suit);
 
       if (suit === 0) {
-        card += "♠️";
+        suitEmoji = "♠️";
+        suitString = "spades";
       } else if (suit === 1) {
-        card += "♥️";
+        suitEmoji = "♥️";
+        suitString = "hearts";
       } else if (suit === 2) {
-        card += "♣️";
+        suitEmoji = "♣️";
+        suitString = "clubs";
       } else {
-        card += "♦️";
+        suitEmoji = "♦️";
+        suitString = "diams";
       }
-      $scope.selected = card;
+      $scope.selected = {
+        "card": card,
+        "emoji": suitEmoji,
+        "suit": suitString
+      };
 
       $state.go(`base.play${stateNum}`);
       if (stateNum === 1) {
@@ -116,7 +151,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
   $scope.playCard = function() {
     if (myTurn) {
       socket.emit('play card', cardPlayed);
-      $scope.selected = "";
+      $scope.selected = {};
       nextState = 'play';
       myTurn = false;
     }
@@ -170,36 +205,46 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
       }
 
       let j=(i+board.round.handWinner)%board.players.length;
-
-      if (board.players[j].bid > -1) {
-        let card = board.round.cards[i];
-        let player = {
-          "name": board.players[j].name,
-          "bid": board.players[j].bid,
-          "tricks": board.players[j].tricks,
-          "score": board.players[j].score,
-        };
-        if (card && (board.round.cards.length != board.players.length)) {
-          let suit = Math.floor(card/13);
-          card = prettyCard(card);
-          if (suit === 0) {
-            card += "♠️";
-          } else if (suit === 1) {
-            card += "♥️";
-          } else if (suit === 2) {
-            card += "♣️";
-          } else {
-            card += "♦️";
-          }
-          player.card = card;
+      let card = board.round.cards[i];
+      let player = {
+        "name": board.players[j].name,
+        "bid": board.players[j].bid,
+        "tricks": board.players[j].tricks,
+        "score": board.players[j].score,
+        "card": {
+          "rank": 0,
+          "suit": "",
+          "suitEmoji": ""
         }
-        if (board.round.winningPlayer === j) {
-          player.winning = "cards-trump";
+      };
+      if (card && (board.round.cards.length != board.players.length)) {
+        let suitNum = Math.floor(card/13);
+        let suit = "";
+        card = prettyCard(card);
+        if (suitNum === 0) {
+          suitEmoji = "♠️";
+          suit = "spades";
+        } else if (suitNum === 1) {
+          suitEmoji = "♥️";
+          suit = "hearts";
+        } else if (suitNum === 2) {
+          suitEmoji = "♣️";
+          suit = "clubs";
         } else {
-          player.winning = "";
+          suitEmoji = "♦️";
+          suit = "diams";
         }
-        $scope.players[j] = player;
+        player.card.rank = card;
+        player.card.suit = suit;
+        player.card.suitEmoji = suitEmoji;
       }
+      if (board.round.winningPlayer === j) {
+        player.winning = "winning";
+      } else {
+        player.winning = "";
+      }
+      $scope.players[j] = player;
+      console.log($scope.players);
     }
 
     $scope.spadesTrump = "";
@@ -246,6 +291,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     if (msg.msg === 'insufficient bid. bid again') {
       bid = -1;
       myTurn = true;
+      $scope.confirm = false;
       $state.go(`base.bid${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;

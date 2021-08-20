@@ -1,24 +1,12 @@
-<div class="cards-table">
-	<div class="cards-suit {{spadesTrump}}">
-		♠️ <div ng-repeat="card in cards.spades">{{card}}</div>
+<div class="bid-container">
+<form class="bid-form">
+	<div ng-hide="confirm">
+		0<input type="range" min="0" max="{{bids}}" class="bid-slider" ng-model="bid">{{bids}}
 	</div>
-	<div class="cards-suit cards-red {{heartsTrump}}">
-		♥️ <div ng-repeat="card in cards.hearts">{{card}}</div>
+	<div class="bid-buttons">
+		<div class="cards-button button-cancel" ng-click="cancel()" ng-show="confirm">Cancel </div>
+		<div class="cards-button" ng-click="selectBid(bid)" ng-hide="confirm">Bid {{bid}} </div>
+		<div class="cards-button button-confirm" ng-click="makeBid()" ng-show="confirm">Confirm {{bid}}</div>
 	</div>
-	<div class="cards-suit {{clubsTrump}}">
-		♣️ <div ng-repeat="card in cards.clubs">{{card}}</div>
-	</div>
-	<div class="cards-suit cards-red {{diamondsTrump}}">
-		♦️ <div ng-repeat="card in cards.diamonds">{{card}}</div>
-	</div>
-</div>
-<form>
-	Bid: 0<input type="range" min="0" max="{{bids}}" class="cards-input" ng-model="bid">{{bids}}
 </form>
-<div class="cards-button" ng-click="makeBid(bid)">Bid {{bid}}</div>
-<div ng-show="player.name" ng-repeat="player in players" class="cards-player">
-	{{player.name}}:
-	<div>Bid: {{player.bid}}</div>
-	<div>Tricks: {{player.tricks}}</div>
-	<div>Score: {{player.score}}</div>
 </div>
