@@ -1,5 +1,5 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
-<div class="cards-main playingCards" ng-show="players">
+<div class="cards-main playingCards faceImages" ng-show="players">
 	<!-- Change Biden and delete comment when done -->
 	<div class="table-style">Your Cards (Biden: <span>{{}}</span>)</div>
 	<div class="cards-deck">
@@ -128,9 +128,8 @@
 			</div>
 		</div>
 	</div>
-</div>
-
-<div class="cards-inner-body">
-	<div ui-view class="cards-ui-view"></div>
+	<div class="cards-inner-body">
+		<div ui-view class="cards-ui-view"></div>
+	</div>
 </div>
 <div class="cards-status" ng-show="status.length">{{status}}</div>

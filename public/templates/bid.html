@@ -1,0 +1,15 @@
+<div class="bid-main">
+	<div class="bid-head">How many hands will you make?</div>
+	<div class="bid-container">
+		<form class="bid-form">
+			<div ng-hide="confirm">
+				0<input type="range" min="0" max="{{bids}}" class="bid-slider" ng-model="bid">{{bids}}
+			</div>
+			<div class="bid-buttons">
+				<div class="cards-button button-cancel" ng-click="cancel()" ng-show="confirm">Cancel </div>
+				<div class="cards-button" ng-click="selectBid(bid)" ng-hide="confirm">Bid {{bid}} </div>
+				<div class="cards-button button-confirm" ng-click="makeBid()" ng-show="confirm">Confirm {{bid}}</div>
+			</div>
+		</form>
+	</div>
+</div>
