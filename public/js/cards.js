@@ -42,6 +42,14 @@ $stateProvider
     url: "/wait",
     templateUrl: "/templates/wait.html"
   })
+  .state("base.next1", {
+    url: "/next",
+    templateUrl: "/templates/next.html"
+  })
+  .state("base.next2", {
+    url: "/next",
+    templateUrl: "/templates/next.html"
+  })
   ;
 
   $urlRouterProvider.otherwise('/base/start');
@@ -200,6 +208,8 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         console.log("Got board " + JSON.stringify(board));
 
         $scope.bids = board.players[i].cards.length;
+
+        $scope.me = i;
       } else {
         delete board.players[i].cards;
       }
@@ -279,7 +289,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     }
     if (msg === 'new round') {
       bid = -1;
-      $state.go(`base.bid${stateNum}`);
+      $state.go(`base.next${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
