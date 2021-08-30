@@ -80,6 +80,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
   $scope.confirm = false;
 
   $scope.makeBid = function() {
+    $scope.confirm = false;
     socket.emit('bid', $scope.bid);
     nextState = 'play';
     myTurn = false;
@@ -263,12 +264,16 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     $scope.diamondsTrump = "";
     if (board.round.trump === 0) {
       $scope.spadesTrump = "cards-trump";
+      $scope.trumpEmoji = "♠️";
     } else if (board.round.trump === 1) {
       $scope.heartsTrump = "cards-trump";
+      $scope.trumpEmoji = "♥️";
     } else if (board.round.trump === 2) {
       $scope.diamondsTrump = "cards-trump";
+      $scope.trumpEmoji = "♣️";
     } else {
       $scope.diamondsTrump = "cards-trump";
+      $scope.trumpEmoji = "♦️";
     }
 
     $state.go(`base.wait${stateNum}`);
@@ -289,6 +294,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     }
     if (msg === 'new round') {
       bid = -1;
+      $scope.bid = null;
       $state.go(`base.next${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;

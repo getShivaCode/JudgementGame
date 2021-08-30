@@ -8,6 +8,7 @@ const _ = require('lodash');
 
 const debug = require('debug');
 const consoleInfo = debug('Judgement:info');
+const PORT = process.env.PORT || 3000;
 
 let boards = [];
 boards[0] = require('./board.json');
@@ -202,8 +203,8 @@ io.on('connection', (socket) => {
 
 });
 
-http.listen(3000, () => {
-  consoleInfo('listening on: 3000');
+http.listen(PORT, () => {
+  consoleInfo(`listening on: ${PORT}`);
 });
 
 
