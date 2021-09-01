@@ -42,14 +42,6 @@ $stateProvider
     url: "/wait",
     templateUrl: "/templates/wait.html"
   })
-  .state("base.next1", {
-    url: "/next",
-    templateUrl: "/templates/next.html"
-  })
-  .state("base.next2", {
-    url: "/next",
-    templateUrl: "/templates/next.html"
-  })
   ;
 
   $urlRouterProvider.otherwise('/base/start');
@@ -78,6 +70,10 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
   let cardPlayed = 0;
 
   $scope.confirm = false;
+
+  $scope.trickOver = false;
+  $scope.roundOver = false;
+  $scope.gameOver = false;
 
   $scope.makeBid = function() {
     $scope.confirm = false;
@@ -175,6 +171,22 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     }
 
   };
+
+  $scope.next = function() {
+    $scope.trickOver = false;
+    $scope.roundOver = false;
+    $scope.gameOver = false;
+    if (nextState === "start") {
+      $state.go('base.start');
+    } else {
+      $state.go(`base.${nextState}${stateNum}`);
+      if (stateNum === 1) {
+        stateNum = 2;
+      } else {
+        stateNum = 1;
+      }
+    }
+  }
 
   socket.on('board', function(board) {
     board = JSON.parse(board);
@@ -292,16 +304,28 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     } else {
       stateNum = 1;
     }
-    if (msg === 'new round') {
-      bid = -1;
-      $scope.bid = null;
-      $state.go(`base.next${stateNum}`);
+
+    if (msg.winner) {
+      $scope.trickOver = true;
+      nextState = 'play';
+      $state.go(`base.wait${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
         stateNum = 1;
       }
+    }
+
+    if (msg === 'new round') {
+      bid = -1;
+      $scope.bid = null;
+      $scope.roundOver = true;
       nextState = 'bid';
+    }
+
+    if (msg === "game finished") {
+      $scope.gameOver = true;
+      nextState = 'start';
     }
 
     if (msg.msg === 'insufficient bid. bid again') {

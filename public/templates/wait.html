@@ -1,24 +1,10 @@
-<!--<div class="cards-table">
-	<div class="cards-suit {{spadesTrump}}">
-		♠️ <div ng-repeat="card in cards.spades">{{card}}</div>
-	</div>
-	<div class="cards-suit cards-red {{heartsTrump}}">
-		♥️ <div ng-repeat="card in cards.hearts">{{card}}</div>
-	</div>
-	<div class="cards-suit {{clubsTrump}}">
-		♣️ <div ng-repeat="card in cards.clubs">{{card}}</div>
-	</div>
-	<div class="cards-suit cards-red {{diamondsTrump}}">
-		♦️ <div ng-repeat="card in cards.diamonds">{{card}}</div>
-	</div>
+<div class="bid-main play-main" ng-show="trickOver">
+	<div class="bid-head play-head">{{winner}} won the hand!</div>
+	<div class="bid-head play-head" ng-show="roundOver"><span ng-repeat="roundWinner in roundWinners">{{roundWinner}}</span> made their bids!</div>
+	<div class="bid-head play-head" ng-show="gameOver">{{gameWinner}} won the game!</div>
+	<form class="bid-form">
+		<div class="bid-buttons">
+			<div class="cards-button play-button" ng-click="next()">Next Trick</div>
+		</div>
+	</form>
 </div>
-<div ng-repeat="player in players" class="cards-table-2">
-	<div class="cards-player">
-		{{player.name}}:
-		<div>Bid: {{player.bid}}</div>
-		<div>Tricks: {{player.tricks}}</div>
-		<div>Score: {{player.score}}</div>
-	</div>
-	<div class="cards-player {{player.winning}}">{{player.card}}</div>
-</div>
--->

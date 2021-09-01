@@ -82,7 +82,11 @@ io.on('connection', (socket) => {
     			}
     		}
     		if (currGame.round.cards.length === 4) { // Round is over
-    			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
+          let retMsg = {
+            "msg": `${currGame.players[currGame.round.winningPlayer].name} won the round.`,
+            "winner": currGame.players[currGame.round.winningPlayer].name
+          };
+    			io.emit('status', retMsg);
     			currGame.players[currGame.round.winningPlayer].tricks++;
           currGame.round.handWinner = currGame.round.winningPlayer;
     			if (currGame.players[0].cards.length === 0) { // Check for end of round
