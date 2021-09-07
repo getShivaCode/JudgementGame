@@ -1,0 +1,16 @@
+		<div class="bid-main play-main">
+			<div class="bid-head play-head">{{winningPlayerName}} won the hand!</div>
+			<div class="bid-head play-head" ng-show="endOfDeal">{{winners}} made contract</div>
+			<div class="bid-head play-head" ng-show="endOfGame">Boo won the game</div>
+			<form class="bid-form" ng-hide="acknowledged">
+				<div class="bid-buttons">
+					<div class="cards-button play-button" ng-click="acknowledge() ">
+						Next 
+							<span ng-hide="endOfDeal">Trick</span>
+							<span ng-show="endOfDeal">Round</span>
+					</div>
+				</div>
+			</form>
+			<div class="bid-head play-head">&nbsp;</div>
+			<div class="bid-head play-head" ng-show="acknowledged">Waiting for Table to Clear!</div>
+		</div>

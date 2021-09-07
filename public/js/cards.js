@@ -42,6 +42,10 @@ $stateProvider
     url: "/wait",
     templateUrl: "/templates/wait.html"
   })
+  .state("base.next", {
+    url: "/next",
+    templateUrl: "/templates/next.html"
+  })
   ;
 
   $urlRouterProvider.otherwise('/base/start');
@@ -70,10 +74,6 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
   let cardPlayed = 0;
 
   $scope.confirm = false;
-
-  $scope.trickOver = false;
-  $scope.roundOver = false;
-  $scope.gameOver = false;
 
   $scope.makeBid = function() {
     $scope.confirm = false;
@@ -172,23 +172,8 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
   };
 
-  $scope.next = function() {
-    $scope.trickOver = false;
-    $scope.roundOver = false;
-    $scope.gameOver = false;
-    if (nextState === "start") {
-      $state.go('base.start');
-    } else {
-      $state.go(`base.${nextState}${stateNum}`);
-      if (stateNum === 1) {
-        stateNum = 2;
-      } else {
-        stateNum = 1;
-      }
-    }
-  }
-
   socket.on('board', function(board) {
+    $scope.winningPlayerName = null;
     board = JSON.parse(board);
     let cards = {
       "spades": [],
@@ -197,6 +182,22 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
       "diamonds": []
     };
 
+    if (board.dealOver) {
+      $scope.endOfDeal = true;
+      $scope.winners = '';
+      if (board.winners && board.winners.length) {
+        for (let i=0; i < board.winners.length; i++) {
+          if (i!=0) $scope.winners += ', ';
+          $scope.winners += board.winners[i];
+        }
+      } else {
+        $scope.winners = 'Nobody';
+      }
+    } else {
+      $scope.endOfDeal = false;
+      delete $scope.winners;
+    }
+
     $scope.players = [];
     for (let i=0; i<board.players.length; i++) {
       $scope.players.push({});
@@ -204,7 +205,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
     for (let i=0; i<board.players.length; i++) {
       delete board.players[i].id;
-      if (board.players[i].cards.length) {
+      if (board.players[i].cards.length) { // This is you! $scope.me will be i
         for (let j=0; j<board.players[i].cards.length; j++) {
           let suit = Math.floor(board.players[i].cards[j]/13);
           if (suit === 0) {
@@ -219,7 +220,6 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         }
         $scope.cards = cards;
         console.log("Got board " + JSON.stringify(board));
-
         $scope.bids = board.players[i].cards.length;
 
         $scope.me = i;
@@ -227,20 +227,24 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         delete board.players[i].cards;
       }
 
-      let j=(i+board.round.handWinner)%board.players.length;
+      // Get the card played by the player
       let card = board.round.cards[i];
-      let player = {
-        "name": board.players[j].name,
-        "bid": board.players[j].bid,
-        "tricks": board.players[j].tricks,
-        "score": board.players[j].score,
-        "card": {
-          "rank": 0,
-          "suit": "",
-          "suitEmoji": ""
-        }
-      };
-      if (card && (board.round.cards.length != board.players.length)) {
+        
+        let j=(i+board.round.handWinner)%board.players.length;
+        let player = {
+          "name": board.players[j].name,
+          "bid": board.players[j].bid,
+          "tricks": board.players[j].tricks,
+          "score": board.players[j].score,
+          "card": {
+            "rank": 0,
+            "suit": "",
+            "suitEmoji": ""
+          }
+        };
+        console.log(`i=${i}, j=${j}, card=${card}`)
+      // Changed "if card" because it was not displaying 2S!!!!
+      if ((card!= null) && (board.round.cards.length != board.players.length)) {
         let suitNum = Math.floor(card/13);
         let suit = "";
         card = prettyCard(card);
@@ -260,6 +264,30 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         player.card.rank = card;
         player.card.suit = suit;
         player.card.suitEmoji = suitEmoji;
+      } else if (card != null) {
+        // Whoever wins the round. Sees the first trick. Otherwise it works great
+        $scope.winningPlayerName = board.players[board.round.handWinner].name;
+     
+        let suitNum = Math.floor(card/13);
+        let suit = "";
+        card = prettyCard(card);
+        if (suitNum === 0) {
+          suitEmoji = "♠️";
+          suit = "spades";
+        } else if (suitNum === 1) {
+          suitEmoji = "♥️";
+          suit = "hearts";
+        } else if (suitNum === 2) {
+          suitEmoji = "♣️";
+          suit = "clubs";
+        } else {
+          suitEmoji = "♦️";
+          suit = "diams";
+        }
+        player.card.rank = card;
+        player.card.suit = suit;
+        player.card.suitEmoji = suitEmoji;
+        console.log("At the end of round " + JSON.stringify(player));
       }
       if (board.round.winningPlayer === j) {
         player.winning = "winning";
@@ -267,7 +295,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         player.winning = "";
       }
       $scope.players[j] = player;
-      console.log($scope.players);
+      console.log(JSON.stringify($scope.players));
     }
 
     $scope.spadesTrump = "";
@@ -304,28 +332,16 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     } else {
       stateNum = 1;
     }
-
-    if (msg.winner) {
-      $scope.trickOver = true;
-      nextState = 'play';
-      $state.go(`base.wait${stateNum}`);
+    if (msg === 'new round') {
+      bid = -1;
+      $scope.bid = null;
+      $state.go(`base.next${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
         stateNum = 1;
       }
-    }
-
-    if (msg === 'new round') {
-      bid = -1;
-      $scope.bid = null;
-      $scope.roundOver = true;
       nextState = 'bid';
-    }
-
-    if (msg === "game finished") {
-      $scope.gameOver = true;
-      nextState = 'start';
     }
 
     if (msg.msg === 'insufficient bid. bid again') {
@@ -399,4 +415,15 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
     return val;
   }
+
+  socket.on('Acknowledge', function(msg) {
+    console.log(JSON.parse(msg));
+    $state.go(`base.next`);
+    $scope.acknowledged = false;
+  });
+
+  $scope.acknowledge = () => {
+    socket.emit('ack', '');
+    $scope.acknowledged = true;
+  };
 }]);

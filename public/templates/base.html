@@ -1,6 +1,6 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
 <div class="cards-main playingCards faceImages" ng-show="(players.length == 4)">
-	<div class="table-style">Your Cards <span>(Strong Suit: {{trumpEmoji}})</span>)</div>
+	<div class="table-style">Your Cards <span>(Strong Suit: {{trumpEmoji}})</span></div>
 	<div class="cards-deck">
 		<div class="cards-suit {{spadesTrump}}">
 			<div ng-repeat="card in cards.spades" ng-click="select(card, 0)" class="card rank-{{card | lowercase}} spades">

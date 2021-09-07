@@ -23,7 +23,7 @@ const publicHTMLPath = process.env.NODE_STATIC_HTML || './public';
 app.use(express.static(publicHTMLPath));
 
 let numUsers = 0;
-let numCards = Math.round(52/numPlayers);
+let numCards = 3;//Math.round(52/numPlayers);
 
 io.on('connection', (socket) => {
   consoleInfo('a user connected');
@@ -81,27 +81,45 @@ io.on('connection', (socket) => {
     				consoleInfo(`Winner is ${currPlayer} winning card is ${card}.`);
     			}
     		}
-    		if (currGame.round.cards.length === 4) { // Round is over
-          let retMsg = {
-            "msg": `${currGame.players[currGame.round.winningPlayer].name} won the round.`,
-            "winner": currGame.players[currGame.round.winningPlayer].name
-          };
-    			io.emit('status', retMsg);
+    		if (currGame.round.cards.length === numPlayers) { // Round is over
+    			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
     			currGame.players[currGame.round.winningPlayer].tricks++;
           currGame.round.handWinner = currGame.round.winningPlayer;
+
+          // My additions
+          currGame.roundOver = true;
+          currGame.acks = 0;
+
     			if (currGame.players[0].cards.length === 0) { // Check for end of round
+
+    				// My additions 
+    				currGame.dealOver = true;
+
+    				currGame.winners = [];
+
     				for (let i=0; i<numPlayers; i++) { // No more cards in this round
     					console.log(`for player ${i} bid is ${currGame.players[i].bid} and tricks are ${currGame.players[i].tricks}`);
     					if (currGame.players[i].bid === currGame.players[i].tricks) {
     						console.log(`adding to score for player ${i}`);
     						currGame.players[i].score += currGame.players[i].tricks+10;
+    						currGame.winners.push(currGame.players[i].name);
     					}
     					currGame.players[i].tricks = 0;
     					currGame.players[i].bid = -1;
     				}
     				if (numCards === 1) {
+    					// My additions 
+    					currGame.gameOver = true;
+
     					io.emit('status', 'game finished');
     				} else {
+
+    					for (let i=0; i<numPlayers; i++) {
+    						playerBoard(currGame, i);
+    						io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    					}
+
+    					/*
     					currGame.round.winningPlayer = 0;
 	   					currGame.round.winningCard = 0;
               currGame.round.handWinner = 0;
@@ -115,14 +133,15 @@ io.on('connection', (socket) => {
   						}
     					socket.to(currGame.players[currGame.round.starter].id).emit('status', msg);
     					numCards--;
-    					playGame(currGame);
+    					playGame(currGame);*/
     				}
     			} else {
     				for (let i=0; i<numPlayers; i++) {
     					playerBoard(currGame, i);
-    				}
+    					io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    				}/*
     				if (currGame.players[currGame.round.winningPlayer].id === socket.id) {
-    					console.log('sending');
+    					console.log('msg using socket.emit ' + currGame.round.winningPlayer);
     					let msg = {
   							"msg": 'Your turn',
   							"canType": true
@@ -133,12 +152,13 @@ io.on('connection', (socket) => {
   							"msg": 'Your turn',
   							"canType": true
   						}
+  						console.log('msg using socket.to ' + currGame.round.winningPlayer);
     					socket.to(currGame.players[currGame.round.winningPlayer].id).emit('status', msg);
-    				}
-    			}
+    				}*/
+    			}/*
     			currGame.round.winningPlayer = 0;
     			currGame.round.winningCard = 0;
-    			currGame.round.cards = [];
+    			currGame.round.cards = [];*/
    			} else {
    				for (let i=0; i<numPlayers; i++) {
     				playerBoard(currGame, i);
@@ -151,6 +171,7 @@ io.on('connection', (socket) => {
     		}
     	}
   	}
+  	consoleInfo("Board is " + JSON.stringify(currGame));
   });
 
   socket.on('bid', (bid) => {
@@ -203,6 +224,44 @@ io.on('connection', (socket) => {
   			}
   		}
  		}
+  });
+
+  // Added this function
+  socket.on('ack', (ack) => {
+  	currGame.acks++;
+  	consoleInfo(`We are now at ${currGame.acks} Acks`);
+  	if (currGame.acks === numPlayers) {
+  		/* Reset the round variables */
+  		let whoStarts = currGame.round.winningPlayer;
+  		currGame.acks = 0;
+  		currGame.roundOver = false;
+  		// Setting winningPlayer to previous handWinner
+  		currGame.round.winningPlayer = currGame.round.handWinner;
+    	currGame.round.winningCard = 0;
+    	currGame.round.cards = [];
+    	// Send board back to everybody
+    	for (let i=0; i<numPlayers; i++) { playerBoard(currGame, i); }
+
+  		if (currGame.dealOver) {
+  			currGame.dealOver = false;
+  			delete currGame.winners;
+  			console.log("Whose bid is it?");
+  			// Send signal to all whose bid it is
+  		} else {
+  			// Send signal to all whose turn it is
+  			let msg = {
+ 					"msg": 'Your turn',
+ 					"canType": true
+  			}
+  			if (currGame.players[whoStarts].id === socket.id) {
+    			console.log('msg using socket.emit ' + whoStarts);
+    			socket.emit('status', msg);
+    		} else {
+					console.log('msg using socket.to ' + whoStarts);
+ 					socket.to(currGame.players[whoStarts].id).emit('status', msg);
+ 				}
+  		}
+  	}
   });
 
 });
