@@ -1,7 +1,13 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
-<div class="cards-main playingCards faceImages" ng-show="(players.length == 4)">
-	<div class="table-style">Your Cards <span>(Strong Suit: {{trumpEmoji}})</span></div>
-	<div class="cards-deck">
+<div class="cards-main playingCards faceImages">
+	<div class="table-style" ng-show="(players.length == 4)">
+		Your Cards <span>(Strong Suit: {{trumpEmoji}})</span>
+	</div>
+	<div class="cards-deck cards-nocards"
+		ng-hide="players.length != 4 || cards.spades.length || cards.hearts.length || cards.diamonds.length || cards.clubs.length">
+		You've played all your cards
+	</div>
+	<div class="cards-deck" ng-show="cards.spades.length || cards.hearts.length || cards.diamonds.length || cards.clubs.length">
 		<div class="cards-suit {{spadesTrump}}">
 			<div ng-repeat="card in cards.spades" ng-click="select(card, 0)" class="card rank-{{card | lowercase}} spades">
 				<span class="rank">{{card}}</span>
@@ -26,19 +32,38 @@
 				<span class="suit">♦️</span>
 			</div>
 		</div>
+		<!--
+		<div class="table-style" ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0">Round 
+			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">overbid
+			</span>
+			<span ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">underbid
+			</span>
+			by 
+			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">
+				{{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
+			</span>
+			<span ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">
+				{{bids - (players[0].bid + players[1].bid + players[2].bid + players[3].bid)}}
+			</span>
+		</div>
+	-->
 	</div>
-	<div class="cards-table">
+	<div class="cards-table" ng-show="(players.length == 4)">
 		<div class="table-player">
 			<div class="player player-top {{players[(me+2)%4].winning}}">
 				<div class="player-info">
 					<div class="player-name">{{players[(me+2)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
-						<div class="value" ng-hide="(players[(me+2)%4].bid == -1)">{{players[(me+2)%4].tricks}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+2)%4].bid == -1)">{{players[(me+2)%4].tricks}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Bid</div>
-						<div class="value" ng-hide="(players[(me+2)%4].bid == -1)">{{players[(me+2)%4].bid}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+2)%4].bid == -1)">{{players[(me+2)%4].bid}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Score</div>
@@ -59,11 +84,15 @@
 					<div class="player-name">{{players[(me+1)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
-						<div class="value" ng-hide="(players[(me+1)%4].bid == -1)">{{players[(me+1)%4].tricks}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+1)%4].bid == -1)">{{players[(me+1)%4].tricks}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Bid</div>
-						<div class="value" ng-hide="(players[(me+1)%4].bid == -1)">{{players[(me+1)%4].bid}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+1)%4].bid == -1)">{{players[(me+1)%4].bid}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Score</div>
@@ -82,11 +111,15 @@
 					<div class="player-name">{{players[(me+3)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
-						<div class="value"  ng-hide="(players[(me+3)%4].bid == -1)">{{players[(me+3)%4].tricks}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+3)%4].bid == -1)">{{players[(me+3)%4].tricks}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Bid</div>
-						<div class="value" ng-hide="(players[(me+3)%4].bid == -1)">{{players[(me+3)%4].bid}}</div>
+						<div class="value">
+							<span ng-hide="(players[(me+3)%4].bid == -1)">{{players[(me+3)%4].bid}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Score</div>
@@ -107,11 +140,15 @@
 					<div class="player-name">{{players[me].name}} (You)</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
-						<div class="value" ng-hide="(players[me].bid == -1)">{{players[me].tricks}}</div>
+						<div class="value">
+							<span ng-hide="(players[me].bid == -1)">{{players[me].tricks}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Bid</div>
-						<div class="value" ng-hide="(players[me].bid == -1)">{{players[me].bid}}</div>
+						<div class="value">
+							<span ng-hide="(players[me].bid == -1)">{{players[me].bid}}</span>&nbsp;
+						</div>
 					</div>
 					<div class="player-info-row">
 						<div class="attr">Score</div>

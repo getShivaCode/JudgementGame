@@ -34,9 +34,34 @@
   overflow-x: scroll;
 }
 
+.form-name {
+  min-width: 45%;
+  font-size: 1em;
+}
+
+.form-element {
+  display: flex;
+  padding-top: 1em;
+}
+
+.cards-input {
+  float: left;
+  cursor: default;
+  font-size: 1em;
+  border-radius: 5px;
+  width: 80%;
+  height: 1.05em;
+}
+
 .cards-deck {
   min-height: 25%;
   background-color: rgb(255 208 180 / 47%);
+}
+
+.cards-nocards {
+  padding-top: 1em;
+  padding-bottom: 1em;
+  font-size: 1.6em;
 }
 
 .cards-suit {
@@ -214,4 +239,13 @@
 
 .play-head {
   font-size: 1.6em;
+}
+
+.win-head {
+  font-size: 1em;
+}
+
+.win-status {
+  color: red;
+  font-weight: bold;
 }

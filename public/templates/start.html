@@ -1,9 +1,21 @@
-<!--<form>
-	Name: <input class="cards-input" type="text" ng-model="name">
-	<br>
-	Players: <input class="cards-input" type="number" ng-model="players" min="4" max="8">
-</form>
-
-<div class="cards-button" ng-click="bid()">Play</div>
--->
-{{status}}
+<div class="bid-main" style="padding: .2em;">
+	Game Set Up
+	<form>
+		<div class="form-element">
+			<div class="form-name">Your Name</div>
+			<div class="form-value">
+				<input class="cards-input" type="text" ng-model="playerName">
+			</div>
+		</div>
+		<!--<div class="form-element">
+			<div class="form-name">Number of Players</div>
+			<div class="form-value">
+				<input class="cards-input" type="number" min="4" max="8" ng-model="numPlayers">
+			</div>
+		</div>-->
+		<div class="cards-button" ng-click="beginGame(playerName, numPlayers)" 
+			ng-show="playerName && playerName.length">Join Game</div>
+		<div class="cards-button" 
+			ng-hide="playerName && playerName.length">Name Required</div>
+	</form>	
+</div>

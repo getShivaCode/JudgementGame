@@ -8,28 +8,35 @@ const _ = require('lodash');
 
 const debug = require('debug');
 const consoleInfo = debug('Judgement:info');
+const consoleError = debug('Judgement:error');
 const PORT = process.env.PORT || 3000;
-
-let boards = [];
-boards[0] = require('./board.json');
-
-let currGame = boards[0];
-
-const numPlayers = currGame.players.length;
-
 const publicHTMLPath = process.env.NODE_STATIC_HTML || './public';
-
 //Static HTML directory
 app.use(express.static(publicHTMLPath));
 
+let boards = [];
+
+// Hard code the number of players for now
+let numPlayers = 4;
 let numUsers = 0;
-let numCards = 3;//Math.round(52/numPlayers);
+let numCards = Math.round(52/numPlayers);
+let currGame = null;
+let createBoard = require('./board.js');
 
 io.on('connection', (socket) => {
-  consoleInfo('a user connected');
+  consoleInfo(`a user ${socket.id} connected`);
+  if (numUsers == 0) {
+  	consoleInfo("Initializing Board");
+  	boards[0] = createBoard(numPlayers);
+		currGame = boards[0];
+		numCards = Math.round(52/numPlayers);
+		consoleInfo("Board is " + JSON.stringify(currGame));
+  }
   numUsers++;
   if (numUsers > numPlayers) {
-  	consoleInfo('rejecting user');
+  	let message = `Table is full. Try again later`;
+  	io.to(socket.id).emit('status', message);
+  	consoleError('rejecting user');
   	io.in(socket.id).disconnectSockets();
   	numUsers--;
   } else {
@@ -38,9 +45,14 @@ io.on('connection', (socket) => {
   		let message = `${numUsers} players have joined. Waiting for full room.`;
   		io.emit('status', message);
   	} else {
-  		playGame(currGame);
+  		let message = `${numUsers} players have joined. Waiting for game to begin.`;
+  		io.emit('status', message);
+  		//playGame(currGame);
+  		// Dont deal the cards. let the Set Name event deal the cards!
   	}
   }
+
+  // This function needs to be updated to remove player's details from the board
   socket.on('disconnect', () => {
     consoleInfo('user disconnected');
     numUsers--;
@@ -49,15 +61,28 @@ io.on('connection', (socket) => {
 		}
   });
 
+  socket.on('Set Name', (initializePlayer) => {
+    consoleInfo("Got " + JSON.stringify(initializePlayer));
+    let currPlayer = _.findIndex(currGame.players, { "id": socket.id });
+    consoleInfo("Player is " + currPlayer);
+    currGame.players[currPlayer].name = initializePlayer.name;
+    consoleInfo("Board is " + JSON.stringify(currGame));
+    if (numUsers == numPlayers) {
+    	let message = `Starting the Game!`;
+  		io.emit('status', message);
+  		playGame(currGame);
+  	}
+  });
+
   socket.on('play card', (card) => {
     card = parseInt(card);
     let currPlayer = _.findIndex(currGame.players, { "id": socket.id });
-    console.log(currPlayer);
+    consoleInfo('Current Player is ' + JSON.stringify(currPlayer));
   	if (socket.id === currGame.players[currPlayer].id) {
-    	let index = _.indexOf(currGame.players[currPlayer].cards, card);
-    	if (index === -1) {
+  		let index = _.indexOf(currGame.players[currPlayer].cards, card);
+  		if ((index === -1) || (!isCardAllowed(card, currPlayer, currGame))) {
     		let msg = {
-  				"msg": 'card not found. play again',
+  				"msg": 'Card not allowed. Try Another',
   				"canType": true
   			}
     		io.emit('status', msg);
@@ -82,7 +107,7 @@ io.on('connection', (socket) => {
     			}
     		}
     		if (currGame.round.cards.length === numPlayers) { // Round is over
-    			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the round.`);
+    			io.emit('status', `${currGame.players[currGame.round.winningPlayer].name} won the trick.`);
     			currGame.players[currGame.round.winningPlayer].tricks++;
           currGame.round.handWinner = currGame.round.winningPlayer;
 
@@ -94,13 +119,12 @@ io.on('connection', (socket) => {
 
     				// My additions 
     				currGame.dealOver = true;
-
     				currGame.winners = [];
 
     				for (let i=0; i<numPlayers; i++) { // No more cards in this round
-    					console.log(`for player ${i} bid is ${currGame.players[i].bid} and tricks are ${currGame.players[i].tricks}`);
+    					consoleInfo(`for player ${i} bid is ${currGame.players[i].bid} and tricks are ${currGame.players[i].tricks}`);
     					if (currGame.players[i].bid === currGame.players[i].tricks) {
-    						console.log(`adding to score for player ${i}`);
+    						consoleInfo(`adding to score for player ${i}`);
     						currGame.players[i].score += currGame.players[i].tricks+10;
     						currGame.winners.push(currGame.players[i].name);
     					}
@@ -108,58 +132,52 @@ io.on('connection', (socket) => {
     					currGame.players[i].bid = -1;
     				}
     				if (numCards === 1) {
-    					// My additions 
-    					currGame.gameOver = true;
-
-    					io.emit('status', 'game finished');
+    					if (currGame.lastRound == null) {
+    						currGame.lastRound = 0;
+    					}
+    					currGame.lastRound ++;
+    					if (currGame.lastRound == numPlayers) { 
+    						// My additions 
+    						io.emit('status', 'game finished');
+    						currGame.gameOver = true;
+    						currGame.gameWinner = [];
+    						let highScore = 0;
+    						for (let i=0; i<numPlayers; i++) {
+    							if (currGame.players[i].score > highScore) {
+    								highScore = currGame.players[i].score;
+    								currGame.gameWinner = [];
+    								currGame.gameWinner[0] = currGame.players[i].name;
+    							} else if (currGame.players[i].score == highScore) {
+    								currGame.gameWinner.push(currGame.players[i].name);
+    							}
+    						}
+    						currGame.highScore = highScore;
+    						for (let i=0; i<numPlayers; i++) {
+    							playerBoard(currGame, i);
+    							io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    							io.in(currGame.players[i].id).disconnectSockets();
+    						}
+    					} else {
+    						numCards ++; // Deal cards again
+    						for (let i=0; i<numPlayers; i++) {
+    							playerBoard(currGame, i);
+    							io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    						}
+    					}
     				} else {
-
     					for (let i=0; i<numPlayers; i++) {
     						playerBoard(currGame, i);
     						io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
     					}
-
-    					/*
-    					currGame.round.winningPlayer = 0;
-	   					currGame.round.winningCard = 0;
-              currGame.round.handWinner = 0;
-  	 					currGame.round.cards = [];
-    					io.emit('status', 'new round');
-    					currGame.round.starter = (currGame.round.starter+1)%numPlayers;
-    					currGame.round.trump = (currGame.round.trump+1)%numPlayers;
-    					let msg = {
-  							"msg": 'Your bid',
-  							"canType": true
-  						}
-    					socket.to(currGame.players[currGame.round.starter].id).emit('status', msg);
-    					numCards--;
-    					playGame(currGame);*/
     				}
     			} else {
     				for (let i=0; i<numPlayers; i++) {
     					playerBoard(currGame, i);
     					io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
-    				}/*
-    				if (currGame.players[currGame.round.winningPlayer].id === socket.id) {
-    					console.log('msg using socket.emit ' + currGame.round.winningPlayer);
-    					let msg = {
-  							"msg": 'Your turn',
-  							"canType": true
-  						}
-    					socket.emit('status', msg);
-    				} else {
-    					let msg = {
-  							"msg": 'Your turn',
-  							"canType": true
-  						}
-  						console.log('msg using socket.to ' + currGame.round.winningPlayer);
-    					socket.to(currGame.players[currGame.round.winningPlayer].id).emit('status', msg);
-    				}*/
-    			}/*
-    			currGame.round.winningPlayer = 0;
-    			currGame.round.winningCard = 0;
-    			currGame.round.cards = [];*/
+    				}
+    			}
    			} else {
+   				consoleInfo("Card Played " + card + " and now sending board " + JSON.stringify(currGame));
    				for (let i=0; i<numPlayers; i++) {
     				playerBoard(currGame, i);
    				}
@@ -204,7 +222,7 @@ io.on('connection', (socket) => {
   				if (bidTotal === numCards) {
   					currGame.players[i].bid = -1;
   					let msg = {
-  						"msg": 'insufficient bid. bid again',
+  						"msg": 'Bid not allowed. Try Another',
   						"canType": true
   					}
   					socket.emit('status', msg);
@@ -239,25 +257,43 @@ io.on('connection', (socket) => {
   		currGame.round.winningPlayer = currGame.round.handWinner;
     	currGame.round.winningCard = 0;
     	currGame.round.cards = [];
-    	// Send board back to everybody
-    	for (let i=0; i<numPlayers; i++) { playerBoard(currGame, i); }
 
   		if (currGame.dealOver) {
-  			currGame.dealOver = false;
-  			delete currGame.winners;
-  			console.log("Whose bid is it?");
-  			// Send signal to all whose bid it is
+  			// Deal Over reset all deal variables
+        currGame.round.handWinner = 0;
+  	 		delete currGame.winners;
+  	 		currGame.dealOver = false;
+
+    		io.emit('status', 'new round');
+    		currGame.round.starter = (currGame.round.starter+1)%numPlayers;
+    		currGame.round.winningPlayer = currGame.round.starter;
+    		currGame.round.handWinner = currGame.round.winningPlayer;
+    		currGame.round.trump = (currGame.round.trump+1)%5; // 5 to accomodate NoTrump
+    		let msg = {
+  				"msg": 'Your bid',
+  				"canType": true
+  			}
+    		socket.to(currGame.players[currGame.round.starter].id).emit('status', msg);
+				numCards--;
+				// Don't allow NT to be the trump when there is only one card being dealt
+				if (numCards == 1 && currGame.round.trump == 4) {
+					currGame.round.trump =0;
+				} 
+				// Deal New Cards to all
+    		playGame(currGame);
   		} else {
+  			// Send updated board back to everybody for the next trick
+    		for (let i=0; i<numPlayers; i++) { playerBoard(currGame, i); }
   			// Send signal to all whose turn it is
   			let msg = {
  					"msg": 'Your turn',
  					"canType": true
   			}
   			if (currGame.players[whoStarts].id === socket.id) {
-    			console.log('msg using socket.emit ' + whoStarts);
+    			consoleInfo('msg using socket.emit ' + whoStarts);
     			socket.emit('status', msg);
     		} else {
-					console.log('msg using socket.to ' + whoStarts);
+					consoleInfo('msg using socket.to ' + whoStarts);
  					socket.to(currGame.players[whoStarts].id).emit('status', msg);
  				}
   		}
@@ -270,24 +306,25 @@ http.listen(PORT, () => {
   consoleInfo(`listening on: ${PORT}`);
 });
 
+// Helper functions
 
-function dealCards(board, numPlayers) {
-		let arr = [];
-		for (let i=0; i<52; i++) {
-			arr.push(i);
-		}
-		let discardCards = 52 - numPlayers*numCards;
-		for (let i=52; i>discardCards; i--) {
-		  let card = arr.splice(Math.floor(Math.random()*i), 1)[0];
-		  let player = i%numPlayers;
-		  board.players[player].cards.push(card);
-		  board.players[player].cards = _.sortBy(board.players[player].cards);
-		}
-		consoleInfo("Discarded cards " + arr);
-		consoleInfo("Dealt cards " + JSON.stringify(board));
+let dealCards = (board, numPlayers) => {
+	let arr = [];
+	for (let i=0; i<52; i++) {
+		arr.push(i);
+	}
+	let discardCards = 52 - numPlayers*numCards;
+	for (let i=52; i>discardCards; i--) {
+		let card = arr.splice(Math.floor(Math.random()*i), 1)[0];
+		let player = i%numPlayers;
+		board.players[player].cards.push(card);
+		board.players[player].cards = _.sortBy(board.players[player].cards);
+	}
+	consoleInfo("Discarded cards " + arr);
+	consoleInfo("Dealt cards " + JSON.stringify(board));
 }
 
-function getSuitAndVal(card) {
+let getSuitAndVal = (card) => {
 	let suit = Math.floor(card/13);
 	let val = card%13+2;
 	return {
@@ -296,7 +333,7 @@ function getSuitAndVal(card) {
 	};
 }
 
-function compareCards(newCard, oldCard, trump) {
+let compareCards = (newCard, oldCard, trump) => {
 	let card1 = getSuitAndVal(newCard);
 	let card2 = getSuitAndVal(oldCard);
 	consoleInfo(`old card: ${oldCard}, new card: ${newCard}`);
@@ -315,7 +352,7 @@ function compareCards(newCard, oldCard, trump) {
 	}
 }
 
-function playGame(board) {
+let playGame = (board) => {
 	dealCards(board, numPlayers);
 	for (let i=0; i<numPlayers; i++) {
 		playerBoard(board, i);
@@ -327,14 +364,38 @@ function playGame(board) {
   io.to(board.players[board.round.starter].id).emit('status', msg);
 }
 
-function playerBoard(board, player) {
+let playerBoard = (board, player) => {
 	let newBoard = JSON.parse(JSON.stringify(board));
   // Remove cards
   for (let j=0; j<numPlayers; j++) {
   	if (player === j) continue;
   	newBoard.players[j].cards = [];
   }
-  // consoleInfo(`Object for player ${player} is ${JSON.stringify(newBoard)} `);
   // Send it to player
   io.to(board.players[player].id).emit('board', JSON.stringify(newBoard));
+  // consoleInfo("Sent Board to " + player + " " + JSON.stringify(newBoard));
+}
+
+let isCardAllowed = (card, currPlayer, currGame) => {
+	let currPlayerCards = currGame.players[currPlayer].cards;
+  let firstCard = currGame.round.cards[0];
+  let noCardsInSuit = true;
+  if (firstCard != null) {
+  	let firstCardSuit = getSuitAndVal(firstCard).suit;
+  	let cardSuit = getSuitAndVal(card).suit;
+  	if (firstCardSuit != cardSuit) {
+  		let minCard = firstCardSuit*13;
+  		let maxCard = minCard + 13;
+  		for (let i=0; i<currPlayerCards.length; i++) {
+  			consoleInfo(`MinMax=${minCard} ${maxCard} ${currPlayerCards[i]}`);
+  			if ((currPlayerCards[i]>=minCard) && (currPlayerCards[i]<maxCard)) {
+  				//Player is holding a valid card. Disallow this play
+  				noCardsInSuit = false;
+  				break;
+  			}
+  		} // Went through all cards in the same suit
+  	} // This is the same suit no else needed
+  } // This is first card no else needed
+  consoleInfo(`Card=${card} firstCard=${firstCard} ${currPlayerCards} noCardsInSuit=${noCardsInSuit}`);
+  return noCardsInSuit;
 }

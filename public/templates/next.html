@@ -1,16 +1,23 @@
-		<div class="bid-main play-main">
-			<div class="bid-head play-head">{{winningPlayerName}} won the hand!</div>
-			<div class="bid-head play-head" ng-show="endOfDeal">{{winners}} made contract</div>
-			<div class="bid-head play-head" ng-show="endOfGame">Boo won the game</div>
+		<div class="bid-main">
+			<div class="bid-head win-head ">
+				<span class="win-status">{{winningPlayerName}}</span> won the hand!
+			</div>
+			<div class="bid-head win-head" ng-show="endOfDeal">
+				<span class="win-status">{{winners}}</span> made contract
+			</div>
+			<div class="bid-head win-head" ng-show="endOfGame">
+				<span class="win-status">{{gameWinner}}</span> won the game, with a 
+				score of <span class="win-status">{{highScore}}</span>
+			</div>
 			<form class="bid-form" ng-hide="acknowledged">
 				<div class="bid-buttons">
-					<div class="cards-button play-button" ng-click="acknowledge() ">
-						Next 
-							<span ng-hide="endOfDeal">Trick</span>
-							<span ng-show="endOfDeal">Round</span>
+					<div class="cards-button play-button" ng-click="acknowledge()"> 
+						<span ng-hide="endOfDeal">Next Trick</span>
+						<span ng-show="endOfDeal && !endOfGame">Next Round</span>
+						<span ng-show="endOfGame">New Game</span>
 					</div>
 				</div>
 			</form>
 			<div class="bid-head play-head">&nbsp;</div>
-			<div class="bid-head play-head" ng-show="acknowledged">Waiting for Table to Clear!</div>
+			<div class="bid-head win-head" ng-show="acknowledged">Waiting for Table to Clear!</div>
 		</div>

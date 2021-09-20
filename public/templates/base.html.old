@@ -1,5 +1,0 @@
-<div class="cards-header">Cards</div>
-<div class="cards-inner-body">
-	<div ui-view></div>
-</div>
-<div class="cards-status" ng-show="status.length">{{status}}</div>
