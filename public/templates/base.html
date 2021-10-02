@@ -32,27 +32,18 @@
 				<span class="suit">♦️</span>
 			</div>
 		</div>
-		<!--
-		<div class="table-style" ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0">Round 
-			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">overbid
-			</span>
-			<span ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">underbid
-			</span>
-			by 
-			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">
-				{{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
-			</span>
-			<span ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">
-				{{bids - (players[0].bid + players[1].bid + players[2].bid + players[3].bid)}}
-			</span>
+		<div class="cards-nocards" ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0"> 
+			<div ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">Round Overbid by {{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
+			</div>
+			<div ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">Round Underbid by {{bids - (players[0].bid + players[1].bid + players[2].bid + players[3].bid)}}
+			</div>
 		</div>
-	-->
 	</div>
 	<div class="cards-table" ng-show="(players.length == 4)">
 		<div class="table-player">
 			<div class="player player-top {{players[(me+2)%4].winning}}">
 				<div class="player-info">
-					<div class="player-name">{{players[(me+2)%4].name}}</div>
+					<div class="player-name">{{players[(me+2)%4].rank}}: {{players[(me+2)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
 						<div class="value">
@@ -81,7 +72,7 @@
 		<div class="table-player player-middle">
 			<div class="player player-left {{players[(me+1)%4].winning}}">
 				<div class="player-info">
-					<div class="player-name">{{players[(me+1)%4].name}}</div>
+					<div class="player-name">{{players[(me+1)%4].rank}}: {{players[(me+1)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
 						<div class="value">
@@ -108,7 +99,7 @@
 			</div>
 			<div class="player player-right {{players[(me+3)%4].winning}}">
 				<div class="player-info">
-					<div class="player-name">{{players[(me+3)%4].name}}</div>
+					<div class="player-name">{{players[(me+3)%4].rank}}: {{players[(me+3)%4].name}}</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
 						<div class="value">
@@ -137,7 +128,7 @@
 		<div class="table-player">
 			<div class="player player-bottom {{players[me].winning}}">
 				<div class="player-info">
-					<div class="player-name">{{players[me].name}} (You)</div>
+					<div class="player-name">{{players[me].rank}}: {{players[me].name}} (You)</div>
 					<div class="player-info-row">
 						<div class="attr">Tricks</div>
 						<div class="value">

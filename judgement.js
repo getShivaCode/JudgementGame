@@ -154,26 +154,26 @@ io.on('connection', (socket) => {
     						currGame.highScore = highScore;
     						for (let i=0; i<numPlayers; i++) {
     							playerBoard(currGame, i);
-    							io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    							io.to(currGame.players[i].id).emit('Acknowledge', ' ');
     							io.in(currGame.players[i].id).disconnectSockets();
     						}
     					} else {
     						numCards ++; // Deal cards again
     						for (let i=0; i<numPlayers; i++) {
     							playerBoard(currGame, i);
-    							io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    							io.to(currGame.players[i].id).emit('Acknowledge', ' ');
     						}
     					}
     				} else {
     					for (let i=0; i<numPlayers; i++) {
     						playerBoard(currGame, i);
-    						io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    						io.to(currGame.players[i].id).emit('Acknowledge', ' ');
     					}
     				}
     			} else {
     				for (let i=0; i<numPlayers; i++) {
     					playerBoard(currGame, i);
-    					io.to(currGame.players[i].id).emit('Acknowledge', JSON.stringify(currGame));
+    					io.to(currGame.players[i].id).emit('Acknowledge', ' ');
     				}
     			}
    			} else {

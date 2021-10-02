@@ -121,7 +121,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         }
         $scope.cards = cards;
         console.log("Got board " + JSON.stringify(board));
-        $scope.bids = board.players[i].cards.length;
+        if ($scope.bids == null) {
+          $scope.bids = board.players[i].cards.length;
+        }
         if ($scope.me == null) $scope.me = i; // Set me just once
       } else {
         delete board.players[i].cards;
@@ -169,6 +171,18 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
         player.winning = "";
       }
       $scope.players[j] = player;
+    }
+
+    // Document the current rankings of the players
+    let sortedScore = _.orderBy($scope.players,['score'],['desc']);
+    let prevHighScore = -1;
+    for (let k=0; k<sortedScore.length; k++) {
+      if (sortedScore[k].score === prevHighScore) {
+          sortedScore[k].rank = sortedScore[k-1].rank;
+      } else {
+          sortedScore[k].rank = k+1;
+          prevHighScore = sortedScore[k].score;
+      }
     }
 
     console.log("Table display is " + JSON.stringify($scope.players));
@@ -278,7 +292,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     });
 
     socket.on('Acknowledge', function(msg) {
-    console.log("Acknowledgement is " + JSON.stringify(JSON.parse(msg)));
+    console.log("Got Acknowledgement");
     $state.go(`base.next${stateNum}`);
     if (stateNum === 1) {
         stateNum = 2;
@@ -302,7 +316,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
     $scope.me = null;
     $scope.status = "";
     $scope.players = [];
-    $scope.bids = 13;
+    $scope.bids = null;
     $scope.selected = "";
     $scope.confirm = false;
     $scope.bid = 0;
@@ -447,6 +461,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', funct
 
   $scope.acknowledge = () => {
     if (!$scope.endOfGame) {
+      if ($scope.endOfDeal) {
+        $scope.bids = null;
+      }
       socket.emit('ack', '');
       $scope.acknowledged = true;
     } else {
