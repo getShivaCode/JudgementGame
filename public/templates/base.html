@@ -1,7 +1,13 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
 <div class="cards-main playingCards faceImages">
 	<div class="table-style" ng-show="(players.length == 4)">
-		Your Cards <span>(Strong Suit: {{trumpEmoji}})</span>
+		(Strong Suit: {{trumpEmoji}})
+		<span ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0"> 
+			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)"> Overbid by {{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
+			</span>
+			<span ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)" >Round Underbid by {{bids - (players[0].bid + players[1].bid + players[2].bid + players[3].bid)}}
+			</span>
+		</span>
 	</div>
 	<div class="cards-deck cards-nocards"
 		ng-hide="players.length != 4 || cards.spades.length || cards.hearts.length || cards.diamonds.length || cards.clubs.length">
@@ -32,12 +38,14 @@
 				<span class="suit">♦️</span>
 			</div>
 		</div>
+		<!--
 		<div class="cards-nocards" ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0"> 
 			<div ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">Round Overbid by {{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
 			</div>
 			<div ng-show="bids > (players[0].bid + players[1].bid + players[2].bid + players[3].bid)">Round Underbid by {{bids - (players[0].bid + players[1].bid + players[2].bid + players[3].bid)}}
 			</div>
 		</div>
+	-->
 	</div>
 	<div class="cards-table" ng-show="(players.length == 4)">
 		<div class="table-player">
