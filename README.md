@@ -8,30 +8,30 @@ During the COVID-19 lockdown, my entire family came together in the evenings and
 
  - All players start with a score of 0 each.
  >  Start of Game
-![Start the game by picking your name](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/chooseName.png)![Waiting for players](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/waitForStart.png)
+![Start the game by picking your name](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/chooseName.png)![Waiting for players](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/waitForStart.png)
  - Players are dealt an equal number of cards at the start of a round. *For example* if there are 4 players, there are 13 cards dealt to each player in the first round.
 
  - There is a strong suit (trump) assigned at the beginning of the round. After seeing their cards, the players sequentially bid the exact number of tricks they want to make during the round. The last player in the round is not allowed to bid a number where the sum of all the bids equals the number of cards dealt per player.
 
 >  Bid the exact number of tricks you want to make
-![Bid](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/bid.png)![Confirm Bid](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/bidConfirm.png)
+![Bid](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/bid.png)![Confirm Bid](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/bidConfirm.png)
 
 - After the bidding, the first player to bid starts by playing a card. The play continues clockwise until all players have played a card. All subsequent players are required to play a card from the original suit played by the first player, unless they don't have a card from the suit. The ones who don't have a card from the original suit, may choose to trump this sequence to try to win the trick. The winner of the trick/hand is the one who plays the highest card in the original suit played or the highest trump played. The winner then starts the next trick/hand and this continues until all cards have been played.
 
 >  Play a card. The player winning the trick so far has the dark background.
-![Play your card](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/playCard.png)![Confirm the end of the trick](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/handWinner.png)
+![Play your card](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/playCard.png)![Confirm the end of the trick](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/handWinner.png)
 
 - At the end of the round, the total tricks are tallied. The players whose trick count exactly equals their bid, gain 10 points + their bid count in this round. For example if I bid 4 and make exactly 4 tricks, I gain 14 points. If I make 6 tricks, I get 0. Or if I make 2 tricks, I get 0. The players who don't, stay at their previous score.
 
 >  End of the round. The player names are prefixed by their current position
-![End of round](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/endOfRound.png)
+![End of round](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/endOfRound.png)
 
 - In the next round, the trump is changed and each player is now dealt one card less than the last round and the game continues, until the previous round only had one card dealt. To make it interesting, the one card round is repeated so that its played 3 more times (in a 4 player game). Also there is a "no-trump" round every 5th round, where is no strong suit.
 
 - At the end the winner of the game is the one with the highest score.
 
 >  End of the game. The winner(s) of the game prefixed by ***1***
-![End of game](https://bitbucket.org/getsachincode/judgement-card-game/raw/2171ecf62a4b0d552a2a8bfb09894f027bc023c6/screenshots/endOfGame.png)
+![End of game](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/endOfGame.png)
 
 ## Creation of the game:
 This Game was created using ***node.js*** for the server with an ***angular*** front end. I used the *socket.io* libraries for client communication and a playing cards css library from *github.com/selfthinker/CSS-Playing-Cards*
