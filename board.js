@@ -13,11 +13,14 @@ let createBoard = (numPlayers) => {
 	for (let i=0; i<numPlayers; i++) {
 		let player = {
 			"name": `Boo${i}`,
-			"id": "",
+			"id": null,
 			"cards": [],
 			"tricks": 0,
 			"bid": -1,
-			"score": 0
+			"score": 0,
+			// For reload purposes
+			"status": 'W'
+			// Reload purposes end
 		}
 		board.players.push(player);
 	}
