@@ -20,7 +20,7 @@
     -khtml-border-radius: .3em;
     border-radius: .3em;
     padding: .25em;
-    margin: 0 .5em .5em 0;
+    margin: .2em .2em .2em .2em;
     text-align: center;
     font-size: 1.2em; /* @change: adjust this value to make bigger or smaller cards */
     font-weight: normal;

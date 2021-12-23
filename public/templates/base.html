@@ -1,7 +1,7 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
 <div class="cards-main playingCards faceImages">
 	<div class="table-style" ng-show="(players.length == 4)">
-		(Strong Suit: {{trumpEmoji}})
+		(<span ng-show="trumpEmoji">Strong Suit: {{trumpEmoji}}</span><span ng-show="!trumpEmoji">No Trump</span>)
 		<span ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0"> 
 			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)"> Overbid by {{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
 			</span>
@@ -168,3 +168,12 @@
 	</div>
 </div>
 <div class="cards-status" ng-show="status.length">{{status}}</div>
+<!-- Ability to Kill the Game -->
+<div class="destroy-element" ng-show="(me == 0)" ng-click="showDestroy=true">Destroy</div>
+<div class="destroy-element destroy-element-main" ng-show="(me == 0) && showDestroy">
+	Are you sure you want to destroy this game?
+	<div class="bid-buttons">
+		<div class="cards-button button-cancel" ng-click="showDestroy=false">Cancel</div>
+		<div class="cards-button" ng-click="destroyGame()">Confirm</div>
+	</div>
+</div>

@@ -12,7 +12,7 @@ let createBoard = (numPlayers) => {
 	};
 	for (let i=0; i<numPlayers; i++) {
 		let player = {
-			"name": `Boo${i}`,
+			"name": null,
 			"id": null,
 			"cards": [],
 			"tricks": 0,

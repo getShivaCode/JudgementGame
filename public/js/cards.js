@@ -127,7 +127,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
           $scope.cards = cards;
           console.log("Got board " + JSON.stringify(board));
           if ($scope.bids == null) {
-            $scope.bids = board.players[i].cards.length;
+            $scope.bids += board.players[i].cards.length;
           }
           if ($scope.me == null) $scope.me = i; // Set me just once
         } else {
@@ -209,10 +209,12 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         $scope.diamondsTrump = "cards-trump";
         $scope.trumpEmoji = "♦️";
       } else { // No Trump
-        $scope.trumpEmoji = '🌋';
+        //$scope.trumpEmoji = '🌋';
+        $scope.trumpEmoji = null;
       }
   
       $state.go(`base.${nextState}${stateNum}`);
+      console.log(`State is base.${nextState}${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -224,11 +226,13 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       if (!storageInitialized) {
         store.set('playerID', socket.id);
         store.set('gameID', 1);
-        store.set('playerName', $scope.playerName);
+        // store.set('playerName', $scope.playerName);
         storageInitialized = true;
       }
       console.log("Got Status " + JSON.stringify(msg));
+      console.log("State was " + $state.current.name);
       $state.go(`base.${nextState}${stateNum}`);
+      console.log(`State is base.${nextState}${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -238,6 +242,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         bid = -1;
         $scope.bid = 0;
         $state.go(`base.next${stateNum}`);
+        console.log(`State is base.next${stateNum}`);
         if (stateNum === 1) {
           stateNum = 2;
         } else {
@@ -251,6 +256,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         myTurn = true;
         $scope.confirm = false;
         $state.go(`base.bid${stateNum}`);
+        console.log(`State is ${nextState}${stateNum}`);
         if (stateNum === 1) {
           stateNum = 2;
         } else {
@@ -271,6 +277,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
 
       if (msg.state) {
         $state.go(`base.${msg.state}${stateNum}`);
+        console.log(`State is base.${nextState}${stateNum}`);
         if (stateNum === 1) {
           stateNum = 2;
         } else {
@@ -294,6 +301,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       }
       $scope.status = `${msg.player} played ${card}`;
       $state.go(`base.wait${stateNum}`);
+      console.log(`State is base.wait${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -304,6 +312,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     socket.on('bid', function(msg) {
       $scope.status = `${msg.player} bid ${msg.bid}`;
       $state.go(`base.wait${stateNum}`);
+      console.log(`State is base.wait${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -314,6 +323,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     socket.on('Acknowledge', function(msg) {
       console.log("Got Acknowledgement");
       $state.go(`base.next${stateNum}`);
+      console.log(`State is base.next${stateNum}`);
       if (stateNum === 1) {
           stateNum = 2;
       } else {
@@ -372,6 +382,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
               break;
             case 'W':
               $state.go('base.wait' + stateNum);
+              console.log(`State is base.wait${stateNum}`);
               break;
             default:
               nextState = 'wait';
@@ -380,6 +391,17 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         }
       }
 
+    });
+
+    socket.on('destroy', function(msg) {
+      console.log('Get Destroy Message from server');
+      $scope.cards = null;
+      $scope.status = 'Game Destroyed';
+      resetAndStartAgain();
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log(`Reason is ${reason}`);
     });
   }
 
@@ -433,6 +455,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       $scope.confirm = true;
       $scope.bid = bid;
       $state.go(`base.bid${stateNum}`);
+      console.log(`State is base.bid${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -446,6 +469,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       $scope.confirm = false;
 
       $state.go(`base.bid${stateNum}`);
+      console.log(`State is base.bid${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -489,6 +513,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       };
 
       $state.go(`base.play${stateNum}`);
+      console.log(`State is base.play${stateNum}`);
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -508,13 +533,20 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
 
   $scope.playPage = function() {
     $state.go(`base.play${stateNum}`);
+    console.log(`State is base.play${stateNum}`);
     if (stateNum === 1) {
       stateNum = 2;
     } else {
       stateNum = 1;
     }
-
   };
+
+  $scope.destroyGame = () => {
+    console.log("Destorying Game and Disconnecting everybody");
+    $scope.showDestroy = false;
+    delete $scope.me;
+    socket.emit('destroy', null);
+  }
 
   let prettyCard = (card) => {
     let val = card%13+2;

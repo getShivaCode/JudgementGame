@@ -24,12 +24,13 @@ let currGame = null;
 let createBoard = require('./board.js');
 
 io.on('connection', (socket) => {
-  consoleInfo(`a user ${socket.id} connected`);
+	numUsers++;
+  consoleInfo(`a user ${socket.id} connected. Connected users: ${numUsers}`);
   // Move all connection logic to somewhere else
   // This function needs to be updated to remove player's details from the board
   socket.on('disconnect', () => {
-    consoleInfo('user disconnected');
-    numUsers--;
+  	numUsers--;
+    consoleInfo(`user ${socket.id} disconnected. Connected users: ${numUsers}`);
 		/*for (let i=0; i<numPlayers; i++) {
 			currGame.players[i].cards = [];
 		}*/
@@ -37,23 +38,22 @@ io.on('connection', (socket) => {
 
   socket.on('Set Name', (initializePlayer) => {
     consoleInfo("Got " + JSON.stringify(initializePlayer));
-    if (numUsers == 0) {
+    if (numUsers === 1) {
   		consoleInfo("Initializing Board");
   		boards[0] = createBoard(numPlayers);
 			currGame = boards[0];
 			numCards = Math.round(52/numPlayers);
 			consoleInfo("Board is " + JSON.stringify(currGame));
   	}
-
-  	// The reason for using a new variable is to take into account a 
-  	// user that may have disconnected don't depend on numUsers
+  	if (checkGameReset()) return;
+ 		// The reason for using a new variable is to take into account a 
+		// user that may have disconnected don't depend on numUsers
   	for (let i=0; i<currGame.players.length;) {
   		let positionFound = false;
     	if (currGame.players[i].id === null) {
     		currGame.players[i].id = socket.id;
     		// Only allow first 8 characters
   			currGame.players[i].name = initializePlayer.name.substring(0,7);
-  			numUsers++;
   			positionFound = true;
   			consoleInfo("Position Found is " + positionFound);
     	}
@@ -87,6 +87,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('play card', (card) => {
+  	if (checkGameReset()) return;
     card = parseInt(card);
     let currPlayer = _.findIndex(currGame.players, { "id": socket.id });
     consoleInfo('Current Player is ' + JSON.stringify(currPlayer));
@@ -223,6 +224,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('bid', (bid) => {
+  	if (checkGameReset()) return;
   	bid = parseInt(bid);
   	let allBid = true;
   	for (let i=0; i<numPlayers; i++) {
@@ -293,6 +295,7 @@ io.on('connection', (socket) => {
 
   // Added this function
   socket.on('ack', (ack) => {
+  	if (checkGameReset()) return;
   	currGame.acks++;
   	consoleInfo(`We are now at ${currGame.acks} Acks`);
   	if (currGame.acks === numPlayers) {
@@ -376,8 +379,11 @@ io.on('connection', (socket) => {
   });
 
   socket.on('reload', (initializePlayer) => {
+  	consoleInfo(`Got reload call from ${socket.id}`);
+  	if (checkGameReset()) {
+  		return;
+  	}
   	let gameFound = false;
-  	numUsers++;
     consoleInfo("Got " + JSON.stringify(initializePlayer));
     if (currGame && initializePlayer && initializePlayer.gameID && initializePlayer.playerID) {
     	consoleInfo("Current Game is " + JSON.stringify(currGame));
@@ -407,6 +413,24 @@ io.on('connection', (socket) => {
     	// Cant accept this user since this game doesn't exist
     	io.to(socket.id).emit('reload', null);
     	io.in(socket.id).disconnectSockets();
+    }
+  });
+
+  socket.on('destroy', (destroy) => {
+  	if (checkGameReset()) return;
+  	let currPlayer = _.findIndex(currGame.players, { "id": socket.id });
+    consoleInfo('Current Player is ' + JSON.stringify(currPlayer));
+    if (currPlayer === 0) {
+    	let temp = currGame;
+    	boards[0] = null;
+    	currGame = null;
+    	consoleInfo("Destroy Game Request Received from Starter");
+    	for(let i=0; i<temp.players.length; i++) {
+    		io.to(temp.players[i].id).emit('destroy', null);
+    	}
+    	io.disconnectSockets();
+    } else {
+    	consoleError("Destroy Game Request Denied");
     }
   });
 
@@ -516,4 +540,14 @@ let isCardAllowed = (card, currPlayer, currGame) => {
   } // This is first card no else needed
   consoleInfo(`Card=${card} firstCard=${firstCard} ${currPlayerCards} noCardsInSuit=${noCardsInSuit}`);
   return noCardsInSuit;
+}
+
+let checkGameReset = () => {
+	if (currGame == null) {
+		// Kill all sockets since there is no game present
+		io.sockets.emit('destroy', null);
+  	io.disconnectSockets();
+  	return true;
+  }
+  return false;
 }

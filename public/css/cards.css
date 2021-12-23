@@ -72,7 +72,7 @@
 }
 
 .cards-trump {
-  background-color: #de374045;
+  background-color: #e70d0df2;
 }
 
 .cards-table {
@@ -248,4 +248,28 @@
 .win-status {
   color: red;
   font-weight: bold;
+}
+
+.destroy-element {
+  margin-bottom: 10px;
+  padding: 12px 24px;
+  border-radius: 8px;
+  color: white;
+  transition: all 0.1s;
+  border: 1px solid transparent;
+  background-color: #980d41a6;
+  min-width: 8%;
+  margin-top: 40px;
+  margin-left: auto;
+  margin-right: auto;
+  position: fixed;
+  bottom: 0;
+  left: 10px;
+  font-size: 2.5em;
+}
+
+.destroy-element-main {
+  width: 95%;
+  left: 0;
+  background-color: #ec7360eb;
 }
