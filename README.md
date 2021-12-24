@@ -7,9 +7,11 @@ During the COVID-19 lockdown, my entire family came together in the evenings and
 ## Rules of the Game:
 
  - All players start with a score of 0 each.
+    
     >  Start of Game
 
     >![Start the game by picking your name](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/chooseName.png) ![Waiting for players](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/waitForStart.png)
+
  - Players are dealt an equal number of cards at the start of a round. *For example* if there are 4 players, there are 13 cards dealt to each player in the first round.
 
  - There is a strong suit (trump) assigned at the beginning of the round. After seeing their cards, the players sequentially bid the exact number of tricks they want to make during the round. The last player in the round is not allowed to bid a number where the sum of all the bids equals the number of cards dealt per player.
