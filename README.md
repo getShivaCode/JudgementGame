@@ -2,14 +2,14 @@
 Judgement is a card game played with 4 players or higher. The objective of the game is for each player to predict how many hands/tricks they will make (after the cards have been dealt) and then exactly make that number of tricks.
 
 ## Why did I create this application?
-During the COVID-19 lockdown, my entire family came together in the evenings and played this game. How that my brother has returned to college and my school has opened up too, I wanted to keep the play alive, so I created an online version of the game. The cards are randomly dealt and we play the game exactly the way we would have, but on our phones! Now I can play the game with family and friends without using physical cards or a paper scoreboard.
+During the COVID-19 lockdown, my entire family came together in the evenings and played this game. Now that my brother has returned to college and my school has opened up too, I wanted to keep the play alive, so I created an online version of the game. The cards are randomly dealt and we play the game exactly the way we would have, but on our phones! Now I can play the game with family and friends without using physical cards or a paper scoreboard.
 
 ## Rules of the Game:
 
  - All players start with a score of 0 each.
     
     >  Start of Game
-
+    
     >![Start the game by picking your name](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/chooseName.png) ![Waiting for players](https://bitbucket.org/getsachincode/judgement-card-game/raw/9efc13c7a486204d651fe5bc37dd5bd26bf07c56/screenshots/waitForStart.png)
 
  - Players are dealt an equal number of cards at the start of a round. *For example* if there are 4 players, there are 13 cards dealt to each player in the first round.
