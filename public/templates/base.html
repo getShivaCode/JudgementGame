@@ -1,7 +1,7 @@
 <div class="cards-header">Sachin's Pandemic Card Game</div>
 <div class="cards-main playingCards faceImages">
 	<div class="table-style" ng-show="(players.length == 4)">
-		(<span ng-show="trumpEmoji">Strong Suit: {{trumpEmoji}}</span><span ng-show="!trumpEmoji">No Trump</span>)
+		(<span ng-show="trumpEmoji">Strong Suit: {{trumpEmoji}}</span><span ng-show="!trumpEmoji">No Strong Suit</span>)
 		<span ng-hide="players[0].bid < 0 || players[1].bid < 0 || players[2].bid < 0 || players[3].bid < 0"> 
 			<span ng-show="bids < (players[0].bid + players[1].bid + players[2].bid + players[3].bid)"> Overbid by {{(players[0].bid + players[1].bid + players[2].bid + players[3].bid) - bids}}
 			</span>

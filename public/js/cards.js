@@ -203,7 +203,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         $scope.heartsTrump = "cards-trump";
         $scope.trumpEmoji = "♥️";
       } else if (board.round.trump === 2) {
-        $scope.diamondsTrump = "cards-trump";
+        $scope.clubsTrump = "cards-trump";
         $scope.trumpEmoji = "♣️";
       } else if (board.round.trump === 3){
         $scope.diamondsTrump = "cards-trump";
