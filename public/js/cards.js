@@ -1,7 +1,7 @@
 var app = angular.module("Cards", ['ui.router', 'angular-storage']);
 
 app.config((storeProvider) => {
-  storeProvider.setStore('localStorage');
+  storeProvider.setStore('sessionStorage');
 });
 
 app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
@@ -419,7 +419,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     $scope.status = "";
     $scope.players = [];
     $scope.bids = null;
-    $scope.selected = "";
+    $scope.selected = {};
     $scope.confirm = false;
     $scope.bid = 0;
 
@@ -464,12 +464,14 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     }
   }
 
-  $scope.cancel = function() {
+  $scope.cancel = function(stateName) {
     if (myTurn) {
       $scope.confirm = false;
+      $scope.selected = {};
 
-      $state.go(`base.bid${stateNum}`);
-      console.log(`State is base.bid${stateNum}`);
+      $state.go(`base.${stateName}${stateNum}`);
+      console.log(`State is base.${stateName}${stateNum}`);
+
       if (stateNum === 1) {
         stateNum = 2;
       } else {
