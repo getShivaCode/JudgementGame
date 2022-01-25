@@ -1,7 +1,7 @@
 var app = angular.module("Cards", ['ui.router', 'angular-storage']);
 
 app.config((storeProvider) => {
-  storeProvider.setStore('sessionStorage');
+  storeProvider.setStore('localStorage');
 });
 
 app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
@@ -63,8 +63,19 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     socket.on('board', function(board) {
       $scope.winningPlayerName = null;
       board = JSON.parse(board);
+      if ($scope.numPlayers != board.players.length) {
+        $scope.numPlayers = board.players.length;
+        console.log("Setting correct numPlayers to " + $scope.numPlayers);
+      }
       if (board.round.cards.length == board.players.length) { // This is the end of the trick
-          $scope.winningPlayerName = board.players[board.round.handWinner].name;
+        $scope.winningPlayerName = board.players[board.round.handWinner].name;
+        for (let i=0; i<board.round.cards.length; i++) { // Compute who played the first card
+          if (board.round.winningCard == board.round.cards[i]) {
+            playerOne = (4 + board.round.handWinner - i)%4;
+            console.log(`Winning Card: ${i} position, PlayerOne: ${playerOne}`);
+            break;
+          }
+        }
       } else {
         playerOne = board.round.handWinner; // Who played the first card?
       }
@@ -129,7 +140,21 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
           if ($scope.bids == null) {
             $scope.bids += board.players[i].cards.length;
           }
-          if ($scope.me == null) $scope.me = i; // Set me just once
+          if ($scope.me == null) {
+            $scope.me = i; // Set me just once
+            $scope.topDisplayPlayer = null;
+            if ($scope.numPlayers%2 == 0) {
+              $scope.topDisplayPlayer = (i+($scope.numPlayers/2))%$scope.numPlayers;
+            }
+            $scope.arrangePlayers = [];
+            for (var k=1; k<Math.round($scope.numPlayers/2); k++) {
+              $scope.arrangePlayers[k-1] = [(i+$scope.numPlayers+k)%$scope.numPlayers, 
+                (i+$scope.numPlayers-k)%$scope.numPlayers];
+            }
+            $scope.arrangePlayers.reverse();
+            console.log("Arranged Players = " + $scope.arrangePlayers);
+          }
+          $scope.bidStatus = calculateBidStatus(board, $scope.me);
         } else {
           delete board.players[i].cards;
         }
@@ -344,6 +369,20 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
           for(let i=0; i<msg.players.length; i++) {
             if(msg.players[i].status) {
               $scope.me = i;
+              $scope.numPlayers = msg.players.length;
+              $scope.playerName = msg.players[i].name;
+              $scope.topDisplayPlayer = null;
+              if ($scope.numPlayers%2 == 0) {
+                $scope.topDisplayPlayer = (i+($scope.numPlayers/2))%$scope.numPlayers;
+              }
+              $scope.arrangePlayers = [];
+              for (var k=1; k<Math.round($scope.numPlayers/2); k++) {
+                $scope.arrangePlayers[k-1] = [(i+$scope.numPlayers+k)%$scope.numPlayers, 
+                  (i+$scope.numPlayers-k)%$scope.numPlayers];
+              }
+              $scope.arrangePlayers.reverse();
+              console.log("Arranged Players = " + $scope.arrangePlayers);
+              $scope.bidStatus = calculateBidStatus(msg, $scope.me);
               reloadStatus = msg.players[i].status;
               restartBoard = false;
               store.set('playerID', socket.id);
@@ -378,7 +417,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
             case 'A':
               myTurn = true;
               nextState = 'next';
-              $scope.status = 'Acknowledge';
+              $scope.status = 'Acknowledgement';
               break;
             case 'W':
               $state.go('base.wait' + stateNum);
@@ -419,7 +458,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     $scope.status = "";
     $scope.players = [];
     $scope.bids = null;
-    $scope.selected = {};
+    $scope.selected = "";
     $scope.confirm = false;
     $scope.bid = 0;
 
@@ -429,9 +468,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
   $scope.beginGame = (playerName, numPlayers) => {
     playerName = playerName.substring(0,7)
     $scope.playerName = playerName;
-    $scope.numPlayers = 4;
+    //$scope.numPlayers = 6;
     // Ignore number of Players They are always 4 for now
-    // $scope.numPlayers = numPlayers;
+    $scope.numPlayers = numPlayers;
     if (playerName) {
       initialize();
       console.log("Player Name is " + playerName);
@@ -445,9 +484,13 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
 
   $scope.makeBid = function() {
     $scope.confirm = false;
-    socket.emit('bid', $scope.bid);
-    nextState = 'wait';
-    myTurn = false;
+    if (isBidAllowed()) {
+      socket.emit('bid', $scope.bid);
+      nextState = 'wait';
+      myTurn = false;
+    } else {
+      $scope.status = `Bid ${$scope.bid} not allowed. Try another`;
+    }
   };
 
   $scope.selectBid = function(bid) {
@@ -471,7 +514,6 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
 
       $state.go(`base.${stateName}${stateNum}`);
       console.log(`State is base.${stateName}${stateNum}`);
-
       if (stateNum === 1) {
         stateNum = 2;
       } else {
@@ -544,7 +586,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
   };
 
   $scope.destroyGame = () => {
-    console.log("Destorying Game and Disconnecting everybody");
+    console.log("Destroying Game and Disconnecting everybody");
     $scope.showDestroy = false;
     delete $scope.me;
     socket.emit('destroy', null);
@@ -580,6 +622,65 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     }
   };
 
+  let calculateBidStatus = (board, me) => {
+    let numPlayers = board.players.length;
+    let totalBid = 0;
+    let tricksMade = 0;
+    let cardsDealt = 0;
+    // Number of cards dealt will be 
+    // the cards a player holds + all the tricks done so far & the current trick if the players turn is done
+    for (let i=0; i<numPlayers; i++) {
+      if (board.players[i].bid >= 0) {
+        totalBid += board.players[i].bid;
+      }
+      tricksMade += board.players[i].tricks;
+      if (i === me) {
+        cardsDealt = board.players[i].cards.length;
+        if (board.players[i].status === 'PD') {
+          cardsDealt++;
+        }
+      }
+    }
+    cardsDealt += tricksMade;
+    let bidStatus = totalBid - cardsDealt;
+    console.log(`bidStatus=${bidStatus} totalBid=${totalBid} cardsDealt=${cardsDealt}`);
+    if (parseInt(bidStatus) > 0) {
+      console.log ('Over bid by ' + bidStatus);
+    } else if (bidStatus === 0) {
+      console.log ('Exact Bid of ' + cardsDealt);
+    } else {
+      console.log('Under bid by ' + bidStatus)
+    }
+    return bidStatus;
+  }
+
+  let isBidAllowed = () => {
+    // Is it the last bid?
+    let totalBid = 0;
+    let lastBid = true;
+    let totalCards = 0;
+    let bidAllowed = true;
+    for (let i=0; i<$scope.players.length; i++) {
+      if (i === $scope.me) {
+        totalBid += parseInt($scope.bid);
+      } else if ($scope.players[i].bid >= 0) {
+        totalBid += $scope.players[i].bid;
+      } else { // Some other player has not bid yet
+        lastBid = false;
+        break;
+      }
+    }
+    if (lastBid) {
+      totalCards = $scope.cards.spades.length + $scope.cards.hearts.length + 
+        $scope.cards.diamonds.length + $scope.cards.clubs.length;
+      if (totalBid === totalCards) { // Is total bid = total cards dealt
+        bidAllowed = false;
+      }
+    }
+    console.log(`Total Bid: ${totalBid} lastBid: ${lastBid} totalCards: ${totalCards}`);
+    return bidAllowed;
+  }
+
   let resetAndStartAgain = () => {
     if (socket) socket.disconnect();
     resetStore();
@@ -595,7 +696,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
   }
 
   $scope.playerName = null;
-  $scope.numPlayers = 4;
+  $scope.numPlayers = 4; // Default Value
   $scope.status = "Set Your Name";
 
   // Retrieve from local storage (name, gameid, socketid)

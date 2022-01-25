@@ -45,7 +45,7 @@ This Game was created using ***node.js*** for the server with an ***angular*** f
 
 ## Future enhancements to the current version:
 
- 1.  Allow the game to be configurable to let 4-8 players play at the same time
+ 1.  Allow the game to be configurable to let 3-8 players play at the same time (Completed 1/24/2022)
  2. Support multiple game tables
  3. If any player drops out (or presses reload), the game terminates. In the future, I will make the game recoverable if that happens. (Completed 11/28/2021)
  4. Port the front end of the game to slack in lieu of the socket.io library

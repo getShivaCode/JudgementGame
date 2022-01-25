@@ -7,12 +7,12 @@
 				<input class="cards-input" type="text" maxlength=8 ng-model="playerName">
 			</div>
 		</div>
-		<!--<div class="form-element">
-			<div class="form-name">Number of Players</div>
+		<div class="form-element">
+			<div class="form-name">Number of Players ({{numPlayers}})</div>
 			<div class="form-value">
-				<input class="cards-input" type="number" min="4" max="8" ng-model="numPlayers">
+				3 <input class="bid-slider" type="range" min="3" max="8" ng-model="numPlayers"> 8
 			</div>
-		</div>-->
+		</div>
 		<div class="cards-button" ng-click="beginGame(playerName, numPlayers)" 
 			ng-show="playerName && playerName.length">Join Game</div>
 		<div class="cards-button" 

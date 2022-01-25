@@ -17,9 +17,9 @@ app.use(express.static(publicHTMLPath));
 let boards = [];
 
 // Hard code the number of players for now
-let numPlayers = 4;
+let numPlayers = null;
 let numUsers = 0;
-let numCards = Math.round(52/numPlayers);
+let numCards = null;
 let currGame = null;
 let createBoard = require('./board.js');
 
@@ -39,10 +39,11 @@ io.on('connection', (socket) => {
   socket.on('Set Name', (initializePlayer) => {
     consoleInfo("Got " + JSON.stringify(initializePlayer));
     if (numUsers === 1) {
-  		consoleInfo("Initializing Board");
+  		numPlayers = parseInt(initializePlayer.numPlayers);
+  		consoleInfo("Initializing Board with " + initializePlayer.numPlayers + " players");
   		boards[0] = createBoard(numPlayers);
 			currGame = boards[0];
-			numCards = Math.round(52/numPlayers);
+			numCards = Math.floor(52/numPlayers);
 			consoleInfo("Board is " + JSON.stringify(currGame));
   	}
   	if (checkGameReset()) return;
@@ -109,7 +110,7 @@ io.on('connection', (socket) => {
     			"card": card
     		};
     		io.emit('play card', msg);
-    		console.log(`${currGame.round.cards}, length is ${currGame.round.cards.length}`);
+    		console.log(`${currGame.round.cards}, length is ${currGame.round.cards.length}, numPlayers are ${numPlayers}`);
     		if (currGame.round.cards.length === 1) {
     			currGame.round.winningPlayer = currPlayer;
     			currGame.round.winningCard = card;

@@ -1,5 +1,6 @@
-<div class="bid-main" ng-show="(players.length == 4)">
+<div class="bid-main" ng-show="(players.length == numPlayers)">
 	<div class="bid-head">How many hands will you make?</div>
+	<div ng-show="(bidStatus <= 0) && allOthersHaveBid">Bid of {{-bidStatus}} not allowed</div>
 	<div class="bid-container">
 		<form class="bid-form">
 			<div ng-hide="confirm">
