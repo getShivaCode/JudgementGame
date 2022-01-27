@@ -71,7 +71,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         $scope.winningPlayerName = board.players[board.round.handWinner].name;
         for (let i=0; i<board.round.cards.length; i++) { // Compute who played the first card
           if (board.round.winningCard == board.round.cards[i]) {
-            playerOne = (4 + board.round.handWinner - i)%4;
+            playerOne = ($scope.numPlayers + board.round.handWinner - i)%$scope.numPlayers;
             console.log(`Winning Card: ${i} position, PlayerOne: ${playerOne}`);
             break;
           }
