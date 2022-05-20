@@ -1,7 +1,7 @@
-var app = angular.module("Cards", ['ui.router', 'angular-storage']);
+var app = angular.module("Cards", ['ui.router', 'angular-storage', 'ngclipboard']);
 
 app.config((storeProvider) => {
-  storeProvider.setStore('localStorage');
+  storeProvider.setStore('sessionStorage');
 });
 
 app.config(function($stateProvider, $urlRouterProvider, $httpProvider) {
@@ -17,6 +17,10 @@ $stateProvider
     url: "/start",
     templateUrl: "/templates/start.html"
   })
+  .state("base.start1", {
+    url: "/start",
+    templateUrl: "/templates/start.html"
+  })
   .state("base.bid1", {
     url: "/bid",
     templateUrl: "/templates/bid.html"
@@ -29,7 +33,6 @@ $stateProvider
     url: "/play",
     templateUrl: "/templates/play.html"
   })
-
   .state("base.play2", {
     url: "/play",
     templateUrl: "/templates/play.html"
@@ -53,16 +56,20 @@ $stateProvider
   $urlRouterProvider.otherwise('/base/start');
 });
 
-app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'store', function($scope, $http, $state, $window, store) {
+app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'store', '$location', 
+  function($scope, $http, $state, $window, store, $location) {
 
   // Controller variables
   let socket, nextState, myTurn, stateNum, cardPlayed, storageInitialized;
+
+  $scope.disableClick = false;
 
   let initializeSocketOperations = (socket) => {
 
     socket.on('board', function(board) {
       $scope.winningPlayerName = null;
       board = JSON.parse(board);
+      console.log("Game ID is " + board.id);
       if ($scope.numPlayers != board.players.length) {
         $scope.numPlayers = board.players.length;
         console.log("Setting correct numPlayers to " + $scope.numPlayers);
@@ -91,6 +98,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       if (board.gameOver) {
         resetStore();
         $scope.endOfGame = true;
+        $scope.disableClick = false;
         $scope.gameWinner = board.gameWinner.join(", ");
         $scope.highScore = board.highScore;
       } else {
@@ -250,7 +258,10 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     socket.on('status', function(msg) {
       if (!storageInitialized) {
         store.set('playerID', socket.id);
-        store.set('gameID', 1);
+        //store.set('gameID', 1);
+        // Reinitialize the local variables
+        playerID = socket.id;
+        //gameID = 1;
         // store.set('playerName', $scope.playerName);
         storageInitialized = true;
       }
@@ -357,6 +368,15 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       $scope.acknowledged = false;
     });
 
+    socket.on('send code', function(msg) {
+      console.log("Got Codes for the game " + JSON.stringify(msg));
+      $scope.gameCode = msg.short;
+      console.log("Game Code is " + $scope.gameCode);
+      $scope.gameCodeURL = $location.absUrl().split('?')[0] + '?gameCode=' + $scope.gameCode;
+      store.set('gameID', msg.id);
+      gameID = msg.id;
+    });
+
     socket.on('reload', function(msg) {
       console.log("Got Reload Answer " + JSON.stringify(msg));
       if (!msg) { // If game not found
@@ -386,6 +406,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
               reloadStatus = msg.players[i].status;
               restartBoard = false;
               store.set('playerID', socket.id);
+              // Reinitialize the local variables
+              playerID = socket.id;
+              gameID = store.get('gameID');;
               break;
             }
           }
@@ -433,15 +456,17 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     });
 
     socket.on('destroy', function(msg) {
-      console.log('Get Destroy Message from server');
+      console.log('Get Destroy Message from server ' + msg);
       $scope.cards = null;
-      $scope.status = 'Game Destroyed';
+      $scope.gameCode = null;
+      $scope.disableClick = false;
+      $scope.status = msg;
       resetAndStartAgain();
     });
 
-    socket.on("disconnect", (reason) => {
-      console.log(`Reason is ${reason}`);
-    });
+    //socket.on("disconnect", (reason) => {
+    //  console.log(`Reason is ${reason}`);
+    //});
   }
 
   let initialize = () => {
@@ -466,6 +491,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
   }
 
   $scope.beginGame = (playerName, numPlayers) => {
+    $scope.disableClick = true;
     playerName = playerName.substring(0,7)
     $scope.playerName = playerName;
     //$scope.numPlayers = 6;
@@ -478,14 +504,33 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
         name: playerName,
         numPlayers: numPlayers
       }
-      socket.emit('Set Name', initializePlayer);
+      //socket.emit('Set Name', initializePlayer);
+      socket.emit('Start Game', initializePlayer);
+    }
+  }
+
+  $scope.joinGame = (playerName, gameCode) => {
+    $scope.disableClick = true;
+    playerName = playerName.substring(0,7)
+    $scope.playerName = playerName;
+    $scope.gameCode = gameCode;
+    if (playerName) {
+      initialize();
+      console.log("Player Name is " + playerName);
+      let initializePlayer = {
+        name: playerName,
+        gameCode: gameCode
+      }
+      socket.emit('Join Game', initializePlayer);
     }
   }
 
   $scope.makeBid = function() {
     $scope.confirm = false;
     if (isBidAllowed()) {
-      socket.emit('bid', $scope.bid);
+      // Added Bid Message
+      let bidMsg = {'bid': $scope.bid, 'gameID': gameID};
+      socket.emit('bid', bidMsg);
       nextState = 'wait';
       myTurn = false;
     } else {
@@ -568,7 +613,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
 
   $scope.playCard = function() {
     if (myTurn) {
-      socket.emit('play card', cardPlayed);
+      //socket.emit('play card', cardPlayed);
+      var playCardMsg = {'gameID': gameID, 'card': cardPlayed};
+      socket.emit('play card', playCardMsg);
       $scope.selected = {};
       nextState = 'wait';
       myTurn = false;
@@ -585,11 +632,20 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     }
   };
 
-  $scope.destroyGame = () => {
-    console.log("Destroying Game and Disconnecting everybody");
-    $scope.showDestroy = false;
+  $scope.leaveGame = (destroy) => {
+    if (destroy) {
+      console.log("Destroying Game and Disconnecting everybody");
+      $scope.showDestroy = false;
+    } else {
+      console.log("Leaving Game and Disconnecting");
+      $scope.showLeave = false;
+    }
+    // Added Destroy Message
+    let destroyMsg = {'gameID': gameID};
+    $scope.disableClick = false;
     delete $scope.me;
-    socket.emit('destroy', null);
+    $scope.gameCode = null;
+    socket.emit('destroy', destroyMsg);
   }
 
   let prettyCard = (card) => {
@@ -613,7 +669,9 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       if ($scope.endOfDeal) {
         $scope.bids = null;
       }
-      socket.emit('ack', '');
+      // Added Ack Message
+      let ackMsg = {'gameID': gameID};
+      socket.emit('ack', ackMsg);
       $scope.acknowledged = true;
     } else {
       //reset Board & Go to start page again
@@ -685,6 +743,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     if (socket) socket.disconnect();
     resetStore();
     $scope.players = [];
+    $state.go(`base.start1`);
     $state.go(`base.start`);
   }
 
@@ -698,6 +757,12 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
   $scope.playerName = null;
   $scope.numPlayers = 4; // Default Value
   $scope.status = "Set Your Name";
+
+  // Get Game Code from URL
+  let params = $location.search();
+  if (params && params.gameCode) {
+    $scope.gameCode = params.gameCode;
+  }
 
   // Retrieve from local storage (name, gameid, socketid)
   let playerID = store.get('playerID');

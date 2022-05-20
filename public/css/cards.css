@@ -229,6 +229,12 @@
     margin-right: auto;
 }
 
+.cards-button:active {
+    background-color: #9e8e41;
+    box-shadow: 0 5px #666;
+    transform: translateY(4px);
+}
+
 .button-confirm {
   background-color: #3e8a1f;
 }
@@ -276,4 +282,9 @@
   width: 95%;
   left: 0;
   background-color: #ec7360eb;
+}
+
+.leave-element {
+  font-size: 1.5em; 
+  z-index: 1;
 }

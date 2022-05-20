@@ -1,7 +1,11 @@
-let createBoard = (numPlayers) => {
+let createBoard = (numPlayers, id) => {
 	let board = {
-		players: [],
-		round: {
+		'id': id,
+		'short_id': 'A',
+		'players': [],
+		'round': {
+			// Added numCards
+			"numCards": 0,
 			"cards": [],
 			"winningPlayer": 0,
 			"winningCard": 0,

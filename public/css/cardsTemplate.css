@@ -32,6 +32,13 @@
     box-shadow: .2em .2em .5em #333;
 }
 
+.playingCards .click-card:active {
+    background-color: #99f0f7da;
+    box-shadow: 0 10px #833;
+    transform: translateY(20px);
+    transform: rotate(.06turn);
+}
+
 .playingCards a.card {
     text-decoration: none;
 }
