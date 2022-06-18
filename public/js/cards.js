@@ -98,6 +98,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
       if (board.gameOver) {
         resetStore();
         $scope.endOfGame = true;
+        $scope.gameCode = null;
         $scope.disableClick = false;
         $scope.gameWinner = board.gameWinner.join(", ");
         $scope.highScore = board.highScore;
@@ -676,6 +677,7 @@ app.controller("CardsController", ['$scope', '$http', '$state', '$window', 'stor
     } else {
       //reset Board & Go to start page again
       $scope.players = [];
+      $scope.gameCode = null;
       $state.go(`base.start`);
     }
   };

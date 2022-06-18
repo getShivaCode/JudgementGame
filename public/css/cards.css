@@ -37,6 +37,7 @@
 .form-name {
   min-width: 45%;
   font-size: 1em;
+  font-weight: bolder;
 }
 
 .form-value {
@@ -229,10 +230,14 @@
     margin-right: auto;
 }
 
+.copyurl-button {
+  background-color: mediumpurple;
+}
+
 .cards-button:active {
-    background-color: #9e8e41;
+    background-color: orange;
     box-shadow: 0 5px #666;
-    transform: translateY(4px);
+    transform: translateY(.1em);
 }
 
 .button-confirm {
@@ -287,4 +292,10 @@
 .leave-element {
   font-size: 1.5em; 
   z-index: 1;
+}
+
+.gamecode-text {
+  background-color: #b5b1b170;
+  margin: 1em;
+  padding: 1em;
 }

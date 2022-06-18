@@ -1,8 +1,8 @@
 <div class="bid-main" ng-show="(players.length < numPlayers)" style="padding: .2em;">
 	<div class="cards-deck">
 		<div>Game Code is <span id="gameCode">{{gameCode}}</span></div>
-		<div class="cards-button" style="background-color: mediumpurple;" 
-			ngclipboard data-clipboard-text='{{gameCodeURL}}'>Copy URL to send Players</div>
+		<div class="cards-button copyurl-button" 
+			ngclipboard data-clipboard-text='{{gameCodeURL}}'>Copy link to send players</div>
 		<div class="cards-button" ng-click="showLeave=true">Leave Game</div>
 	</div>
 </div>

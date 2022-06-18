@@ -1,5 +1,7 @@
 <div class="bid-main" style="padding: .2em;">
-	Game Set Up
+	<div class="gamecode-text" style="font-size: 1.2em;">
+		GAME SETUP
+	</div>
 	<form>
 		<div class="form-element">
 			<div class="form-name">Your Name</div>
@@ -20,12 +22,20 @@
 			</div>
 		</div>
 		<div class="cards-button" ng-click="beginGame(playerName, numPlayers)" 
-			ng-show="!(disableClick) && playerName && playerName.length && !(gameCode) && !(gameCode.length)">Lead New Game</div>
+			ng-show="!(disableClick) && playerName && playerName.length && !(gameCode) && !(gameCode.length)">Start New Game Board</div>
 		<div class="cards-button" ng-click="joinGame(playerName, gameCode)" 
 			ng-show="!(disableClick) && playerName && playerName.length && gameCode && gameCode.length">Join Game Already Created</div>
 		<div class="cards-button" 
 			ng-show="playerName && playerName.length && disableClick">Joining</div>
 		<div class="cards-button" 
 			ng-hide="playerName && playerName.length">Name Required</div>
+		<div class="form-element gamecode-text" ng-show="!(gameCode) && !(gameCode.length)">
+			Number of Players are required to start a new game board. Game will not start until the table is full.
+		</div>
+		<div class="form-element gamecode-text">
+			Enter Game Code ONLY if you want to join a game already created.
+			<br/>
+			To start a new game board, leave Game Code blank.
+		</div>
 	</form>	
 </div>

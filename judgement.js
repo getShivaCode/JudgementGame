@@ -185,8 +185,7 @@ io.on('connection', (socket) => {
 
     let emptySpot = _.findIndex(presentGame.players, {id:null});
     if (emptySpot < 0) {
-    	let message = `Table is full. Try again later`;
-  		io.to(socket.id).emit('status', message);
+  		socket.emit('destroy', `Table is full. Try a different board`);
   		consoleInfo('Rejecting user, table is full');
   		io.in(socket.id).disconnectSockets();
   		return; // Reject the user and exit this function
@@ -205,10 +204,10 @@ io.on('connection', (socket) => {
     socket.emit('send code', {'id': presentGame.id, 'short': presentGame.short_id});
   	if (gameUsers < boardPlayers) {
   		let message = `${gameUsers} player(s) joined. Waiting for full room.`;
-  		io.emit('status', message);
+  		emitMessage2Board(presentGame, 'status', message);
   	} else {
   		let message = `${gameUsers} players have joined. Waiting for game to begin.`;
-  		io.emit('status', message);
+  		emitMessage2Board(presentGame, 'status', message);
   	}
     consoleInfo("Board is " + JSON.stringify(presentGame));
     if (gameUsers == boardPlayers) {
@@ -216,7 +215,7 @@ io.on('connection', (socket) => {
     		"msg": "Starting the Game!",
     		"state": "wait"
     	};
-  		io.emit('status', message);
+  		emitMessage2Board(presentGame, 'status', message);
   		playGame(presentGame);
   	}
   });   
@@ -263,7 +262,7 @@ io.on('connection', (socket) => {
     			"player": presentGame.players[currPlayer].name,
     			"card": card
     		};
-    		io.emit('play card', msg);
+    		emitMessage2Board(presentGame, 'play card', msg);
     		console.log(`${presentGame.round.cards}, length is ${presentGame.round.cards.length}, numPlayers are ${boardPlayers}`);
     		if (presentGame.round.cards.length === 1) {
     			presentGame.round.winningPlayer = currPlayer;
@@ -276,7 +275,7 @@ io.on('connection', (socket) => {
     			}
     		}
     		if (presentGame.round.cards.length === boardPlayers) { // Round is over
-    			io.emit('status', `${presentGame.players[presentGame.round.winningPlayer].name} won the trick.`);
+    			emitMessage2Board(presentGame, 'status', `${presentGame.players[presentGame.round.winningPlayer].name} won the trick.`);
     			presentGame.players[presentGame.round.winningPlayer].tricks++;
           presentGame.round.handWinner = presentGame.round.winningPlayer;
 
@@ -307,7 +306,7 @@ io.on('connection', (socket) => {
     					presentGame.lastRound ++;
     					if (presentGame.lastRound == boardPlayers) { 
     						// My additions 
-    						io.emit('status', 'game finished');
+    						emitMessage2Board(presentGame, 'status', 'game finished');
     						presentGame.gameOver = true;
     						presentGame.gameWinner = [];
     						let highScore = 0;
@@ -328,6 +327,12 @@ io.on('connection', (socket) => {
     							playerBoard(presentGame, i);
     							io.to(presentGame.players[i].id).emit('Acknowledge', ' ');
     							io.in(presentGame.players[i].id).disconnectSockets();
+    							// Remove game from boards
+    							let boardIndex = _.findIndex(boards, {id: presentGame.id});
+    							if (boardIndex >= 0) {
+    								boards.splice(boardIndex,1);
+    								consoleInfo("Boards are " + JSON.stringify(boards));
+    							}
     						}
     					} else {
     						presentGame.round.numCards ++; // Deal cards again
@@ -410,7 +415,7 @@ io.on('connection', (socket) => {
             "player": presentGame.players[j].name,
             "bid": bid
           };
-          socket.emit('bid', msg);
+          emitMessage2Board(presentGame, 'bid', msg);
   			}
   		}
   		playerBoard(presentGame, i);
@@ -509,7 +514,7 @@ io.on('connection', (socket) => {
   	 		delete presentGame.winners;
   	 		presentGame.dealOver = false;
 
-    		io.emit('status', 'new round');
+    		emitMessage2Board(presentGame, 'status', 'new round');
     		presentGame.round.starter = (presentGame.round.starter+1)%boardPlayers;
     		presentGame.round.winningPlayer = presentGame.round.starter;
     		presentGame.round.handWinner = presentGame.round.winningPlayer;
@@ -635,7 +640,7 @@ io.on('connection', (socket) => {
     consoleInfo('Current Player is ' + JSON.stringify(currPlayer));
     if (currPlayer === 0) { // Destroy Game
     	let temp = presentGame;
-    	boards[destroy.gameID] = null;
+    	// boards[destroy.gameID] = null;
     	// This needs to be deleted later
     	// currGame = null;
     	consoleInfo("Destroy Game Request Received from Starter");
@@ -667,7 +672,7 @@ io.on('connection', (socket) => {
     		}
 				if (gameUsers < boardPlayers) {
   				let message = `${gameUsers} player(s) joined. Waiting for full room.`;
-  				io.emit('status', message);
+  				emitMessage2Board(presentGame, 'status', message);
   			}
     	} else {
     		consoleError("Destroy/Leave Game Request Denied");
@@ -822,4 +827,14 @@ let makeid = (length) => {
   	result += characters.charAt(Math.floor(Math.random()*charactersLength));
   }
   return result;
+}
+
+let emitMessage2Board = (board, category, message) => {
+	if (board && board.players && (board.players.length > 0) && category && message) {
+		for(let i=0; i<board.players.length; i++) {
+   		io.to(board.players[i].id).emit(category, message);
+    }
+  } else {
+  	consoleError("No message to emit");
+  }
 }
